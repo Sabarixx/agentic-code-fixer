@@ -38,7 +38,7 @@
   <a href="#-quick-start">Quick Start</a> •
   <a href="#-observability--tracing">Observability</a> •
   <a href="#-repository-structure">Repo Structure</a> •
-  <a href="#-state-schema-reference">State Schema</a> •
+  <a href="#-state-schema-technical-reference-click-to-expand">State Schema</a> •
   <a href="#-author--license">Author & License</a>
 </p>
 
@@ -69,17 +69,22 @@ flowchart TD
     classDef passNode fill:#064E3B,stroke:#10B981,stroke-width:2px,color:#fff;
     classDef failNode fill:#7F1D1D,stroke:#EF4444,stroke-width:2px,color:#fff;
 
-    START([🚀 START: Load Spec]) :::startNode --> Planner[🧠 planner_node<br/>Generate Structured Strategy] :::agentNode
-    Planner --> Coder[💻 coder_node<br/>Generate / Modify Python Code] :::agentNode
-    Coder --> Tester[🧪 tester_node<br/>Execute Pytest Sandbox] :::agentNode
+    START(["START: Load Spec"]) --> Planner["planner_node: Generate Strategy"]
+    Planner --> Coder["coder_node: Generate or Fix Code"]
+    Coder --> Tester["tester_node: Execute Pytest Sandbox"]
 
-    Tester -->|All Tests Passed| Refactor[🎨 refactor_node<br/>Optimize & Clean Code] :::passNode
-    Refactor --> ReTest[🧪 Re-Test Refactored Code] :::agentNode
-    ReTest -->|Passed| END([✅ DONE: Solution Verified]) :::passNode
-    ReTest -->|Regression| Revert[↩️ Revert to Pre-Refactor] :::passNode --> END
+    Tester -->|"All Tests Passed"| Refactor["refactor_node: Optimize Code"]
+    Refactor --> ReTest["Re-Test Refactored Code"]
+    ReTest -->|"Passed"| END(["DONE: Solution Verified"])
+    ReTest -->|"Regression"| Revert["Revert to Pre-Refactor"] --> END
 
-    Tester -->|Tests Failed & Iterations < 3| Coder
-    Tester -->|Tests Failed & Iterations >= 3| FAILED([❌ FAILED: Max Iterations Exceeded]) :::failNode
+    Tester -->|"Tests Failed & Count < 3"| Coder
+    Tester -->|"Tests Failed & Count >= 3"| FAILED(["FAILED: Max Iterations Exceeded"])
+
+    class START startNode;
+    class Planner,Coder,Tester,ReTest agentNode;
+    class Refactor,Revert,END passNode;
+    class FAILED failNode;
 ```
 
 ### 👥 Agent Node Responsibilities
