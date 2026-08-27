@@ -1,0 +1,21 @@
+{
+  "id": "spec_02",
+  "title": "Reverse Linked List",
+  "function_name": "reverse_list",
+  "signature": "def reverse_list(head: ListNode | None) -> ListNode | None:",
+  "docstring": "Reverse a singly linked list in place and return the new head. ListNode has attributes val (int) and next (ListNode | None).",
+  "constraints": [
+    "0 <= number of nodes <= 5000",
+    "-5000 <= Node.val <= 5000"
+  ],
+  "examples": [
+    {
+      "input": { "head": [1, 2, 3, 4, 5] },
+      "output": [5, 4, 3, 2, 1]
+    },
+    {
+      "input": { "head": [1, 2] },
+      "output": [2, 1]
+    }
+  ]
+}

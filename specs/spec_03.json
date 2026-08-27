@@ -1,0 +1,16 @@
+{
+  "id": "spec_03",
+  "title": "Valid Parentheses",
+  "function_name": "is_valid",
+  "signature": "def is_valid(s: str) -> bool:",
+  "docstring": "Return True if s is a valid parentheses string. A string is valid when open brackets are closed by the same type of brackets, in the correct order, and every close has a matching open.",
+  "constraints": [
+    "1 <= len(s) <= 10^4",
+    "s consists of '()[]{}' only"
+  ],
+  "examples": [
+    { "input": { "s": "()" }, "output": true },
+    { "input": { "s": "()[]{}" }, "output": true },
+    { "input": { "s": "(]" }, "output": false }
+  ]
+}

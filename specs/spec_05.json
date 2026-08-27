@@ -1,0 +1,18 @@
+{
+  "id": "spec_05",
+  "title": "Group Anagrams",
+  "function_name": "group_anagrams",
+  "signature": "def group_anagrams(strs: list[str]) -> list[list[str]]:",
+  "docstring": "Group the strings that are anagrams of each other. Return the groups in any order. Within a group, keep the original strings (order of groups and order inside a group need not be unique).",
+  "constraints": [
+    "1 <= len(strs) <= 10^4",
+    "0 <= len(strs[i]) <= 100",
+    "strs[i] consists of lowercase English letters"
+  ],
+  "examples": [
+    {
+      "input": { "strs": ["eat", "tea", "tan", "ate", "nat", "bat"] },
+      "output": [["eat", "tea", "ate"], ["tan", "nat"], ["bat"]]
+    }
+  ]
+}
