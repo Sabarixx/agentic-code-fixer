@@ -1,0 +1,7 @@
+{
+  "approach": "1. Create an empty dictionary `index_map` to store numbers as keys and their indices as values.\n2. Iterate over the list `nums` with `enumerate` to get both the current index `i` and the value `num`.\n3. For each `num`, compute its complement `target - num`.\n4. Check if the complement exists in `index_map`:\n   - If it does, return a list `[index_map[complement], i]` (the order does not matter).\n   - If it does not, store the current number and its index in `index_map`.\n5. Because the problem guarantees exactly one solution, the function will always return inside the loop.\n\nThis approach ensures that each element is processed once and the lookup for the complement is O(1) on average, giving linear time complexity.",
+  "edge_cases": [
+    "Input list with duplicate values (e.g., [3,3] with target 6) \u2013 ensure the same element is not used twice.\nNegative numbers and zero values.\nLarge magnitude numbers up to \u00b110^9.\nMinimum list length of 2.\nTarget that is the sum of two numbers appearing later in the list.\nExactly one solution guarantee \u2013 no need to handle no-solution case, but still handle gracefully if not found.\n"
+  ],
+  "complexity_target": "O(n) Time, O(n) Space"
+}

@@ -1,0 +1,100 @@
+"""Coder Node implementation with LLM code generation and AST syntax validation."""
+
+from __future__ import annotations
+
+import ast
+import os
+import re
+from typing import Any
+from dotenv import load_dotenv
+from langchain_groq import ChatGroq
+
+from agent.prompts.coder_prompt import (
+    CODER_SYSTEM_PROMPT,
+    format_coder_user_prompt,
+)
+from agent.state import AgentState
+from tools.file_writer import write_code_to_file
+
+load_dotenv()
+
+
+def get_llm():
+    """Initialize LLM client for Coder node."""
+    api_key = os.getenv("GROQ_API_KEY")
+    if not api_key:
+        raise ValueError("GROQ_API_KEY environment variable is not set in .env")
+    return ChatGroq(
+        model="openai/gpt-oss-20b",
+        api_key=api_key,
+        temperature=0.1,
+    )
+
+
+def extract_code_block(response_text: str) -> str:
+    """Extract Python code from LLM response text, stripping markdown fences."""
+    # Pattern 1: ```python ... ```
+    pattern_python = re.compile(r"```python\s*(.*?)\s*```", re.DOTALL | re.IGNORECASE)
+    match = pattern_python.search(response_text)
+    if match:
+        return match.group(1).strip()
+
+    # Pattern 2: ``` ... ```
+    pattern_generic = re.compile(r"```\s*(.*?)\s*```", re.DOTALL)
+    match = pattern_generic.search(response_text)
+    if match:
+        return match.group(1).strip()
+
+    # Fallback: treat entire response text as code
+    return response_text.strip()
+
+
+def validate_code_ast(code: str) -> tuple[bool, str]:
+    """Validate python code using AST parsing. Returns (is_valid, error_msg)."""
+    try:
+        ast.parse(code)
+        return True, ""
+    except SyntaxError as err:
+        return False, f"SyntaxError at line {err.lineno}: {err.msg}"
+    except Exception as err:
+        return False, str(err)
+
+
+def coder_node(state: AgentState) -> dict[str, Any]:
+    """LangGraph Coder Node: generates Python solution code, validates AST, writes file."""
+    spec = state.get("spec") or {}
+    plan = state.get("plan") or {}
+    iteration_count = state.get("iteration_count", 0) + 1
+    spec_id = spec.get("id", "spec_unknown")
+
+    user_prompt = format_coder_user_prompt(spec, plan)
+    llm = get_llm()
+
+    messages = [
+        ("system", CODER_SYSTEM_PROMPT),
+        ("human", user_prompt),
+    ]
+
+    try:
+        response = llm.invoke(messages)
+        raw_text = response.content if hasattr(response, "content") else str(response)
+        code = extract_code_block(raw_text)
+    except Exception as err:
+        return {
+            "status": "error",
+            "code": f"# Coder failed: {err}",
+            "iteration_count": iteration_count,
+        }
+
+    # Validate AST syntax
+    is_valid, ast_error = validate_code_ast(code)
+    status = "coding" if is_valid else "coder_syntax_error"
+
+    # Write generated file to generated/
+    filepath = write_code_to_file(spec_id, iteration_count, code)
+
+    return {
+        "status": status,
+        "code": code,
+        "iteration_count": iteration_count,
+    }

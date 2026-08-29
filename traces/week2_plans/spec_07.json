@@ -1,0 +1,13 @@
+{
+  "approach": "1. Data Structures\n   - Hash map `cache` mapping key -> node reference.\n   - Doubly linked list to maintain usage order.  The head of the list is the most recently used (MRU) node, the tail is the least recently used (LRU).\n   - Each node stores key, value, prev, next.\n\n2. Helper functions\n   - `move_to_front(node)`: remove node from its current position and insert right after head.\n   - `remove_node(node)`: unlink node from list.\n   - `add_to_front(node)`: insert node right after head.\n   - `evict_lru()`: remove node just before tail (the LRU) and delete its key from `cache`.\n\n3. Constructor `__init__(capacity)`\n   - Store capacity.\n   - Initialize dummy head and tail nodes to simplify edge handling.\n   - Link head.next = tail and tail.prev = head.\n   - Initialize empty `cache` dict.\n\n4. `get(key)`\n   - If key not in `cache`, return -1.\n   - Retrieve node, move it to front (MRU), return node.value.\n\n5. `put(key, value)`\n   - If key already exists:\n        * Update node.value.\n        * Move node to front.\n     Else:\n        * Create new node.\n        * Add to front.\n        * Insert into `cache`.\n        * If size > capacity, evict LRU node.\n\nAll operations use only dictionary lookups and a constant number of pointer updates, giving O(1) average time.\n\n6. Edge handling\n   - Capacity of 0: all gets return -1, puts do nothing.\n   - Duplicate keys: update value and usage.\n   - Keys or values equal to 0 are valid.\n   - Large number of operations: no recursion, iterative only.\n\n7. Complexity\n   - Time: O(1) per `get`/`put`.\n   - Space: O(capacity) for cache dict + nodes.\n",
+  "edge_cases": [
+    "Capacity zero (though constraints say >=1).",
+    "Getting a key that does not exist.",
+    "Putting a key that already exists (update).",
+    "Evicting when capacity is reached.",
+    "Using key or value equal to 0.",
+    "Repeated get/put on same key.",
+    "Capacity of 1."
+  ],
+  "complexity_target": "O(1) Time per operation, O(capacity) Space"
+}

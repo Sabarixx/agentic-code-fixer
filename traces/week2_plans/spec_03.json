@@ -1,0 +1,13 @@
+{
+  "approach": "1. Initialize an empty stack.\n2. Create a mapping of closing brackets to their corresponding opening brackets: {')':'(', ']':'[', '}':'{'}.\n3. Iterate over each character `c` in the input string `s`:\n   - If `c` is an opening bracket ('(', '[', '{'), push it onto the stack.\n   - If `c` is a closing bracket:\n     * If the stack is empty, return False (no matching opening).\n     * Pop the top element from the stack and check if it matches the expected opening bracket from the mapping. If not, return False.\n4. After processing all characters, if the stack is empty, return True; otherwise, return False (unmatched openings remain).\n\nThis algorithm ensures that brackets are closed in the correct order and type, using a stack to keep track of pending openings.",
+  "edge_cases": [
+    "Empty string (should return True if considered valid, but constraints say length >=1).",
+    "String with odd length \u2013 automatically invalid.",
+    "String starting with a closing bracket.",
+    "String ending with an opening bracket.",
+    "Mismatched bracket types, e.g., '(]'.",
+    "Unmatched closing bracket after some openings, e.g., '([)]'.",
+    "String containing characters other than '()[]{}' \u2013 should be treated as invalid."
+  ],
+  "complexity_target": "O(n) Time, O(n) Space"
+}

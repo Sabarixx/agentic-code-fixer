@@ -1,0 +1,14 @@
+{
+  "approach": "1. Initialize an empty dictionary `groups` mapping a key to a list of strings.\n2. For each string `s` in the input list:\n   * Compute a canonical key that uniquely identifies its anagram class. Two common choices are:\n     - Sort the characters of `s` (`''.join(sorted(s))`).\n     - Count the frequency of each of the 26 lowercase letters and use the resulting 26\u2011tuple as the key.\n   * Append `s` to `groups[key]` (create the list if the key is new).\n3. After processing all strings, return `list(groups.values())`.\n\nThis algorithm preserves the original strings in each group and does not impose any ordering on the groups or the elements within them, satisfying the problem requirements.\n\nIf the sorted\u2011string key is chosen, the time to compute a key is `O(k log k)` where `k` is the length of the string. If the frequency\u2011tuple key is chosen, the time is `O(k)`.\n\nBoth approaches use a dictionary for O(1) average\u2011time insertions and lookups.\n\nThe final result is a list of lists, each inner list containing all strings that are anagrams of each other.\n",
+  "edge_cases": [
+    "Input list contains an empty string (length 0).",
+    "All strings are identical (e.g., ['a','a','a']).",
+    "All strings are unique and not anagrams of each other.",
+    "Strings of maximum allowed length (100 characters).",
+    "Large input size near 10^4 strings.",
+    "Strings containing duplicate letters (e.g., 'aabb').",
+    "Strings with varying lengths but same sorted key (e.g., 'ab', 'ba').",
+    "Input list with a single string."
+  ],
+  "complexity_target": "Time: O(N * K log K) using sorted keys (or O(N * K) using frequency tuples), where N is the number of strings and K is the maximum string length.  Space: O(N * K) for storing the groups and keys."
+}

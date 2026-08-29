@@ -1,0 +1,12 @@
+{
+  "approach": "We perform a modified binary search that works on a rotated sorted array. At each iteration we examine the middle element and determine which half of the current interval is sorted. Because the array contains distinct values, one half must be strictly increasing. If the target lies within the sorted half, we discard the other half; otherwise we keep the unsorted half. This guarantees that the search interval shrinks by roughly half each step, yielding O(log\u202fn) time. The algorithm uses only a few integer variables, so the space usage is O(1).",
+  "edge_cases": [
+    "Array of length 1 (target present or absent).",
+    "Array not rotated (pivot at index 0).",
+    "Array rotated by its full length (effectively no rotation).",
+    "Target equals the first element, last element, or middle element.",
+    "Target not present in the array.",
+    "Array contains negative numbers and target is negative."
+  ],
+  "complexity_target": "O(log\u202fn) Time, O(1) Space"
+}

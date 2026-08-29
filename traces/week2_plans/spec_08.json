@@ -1,0 +1,14 @@
+{
+  "approach": "1. Build adjacency list and indegree array for all nodes.\n2. Initialize a queue (or stack) with all nodes having indegree 0.\n3. Repeatedly pop a node from the queue, append it to the result list, and decrement the indegree of each of its neighbors. If a neighbor\u2019s indegree becomes 0, push it onto the queue.\n4. After processing, if the result list length equals num_nodes, return it; otherwise a cycle exists and return None.\n\nThis is Kahn\u2019s algorithm for topological sorting, which runs in linear time relative to the number of nodes and edges.",
+  "edge_cases": [
+    "num_nodes = 1 with no edges (should return [0])",
+    "graph with isolated nodes (nodes with no incoming or outgoing edges)",
+    "graph with multiple independent chains",
+    "graph where all nodes form a single cycle",
+    "graph with self-loop (edge u->u) treated as a cycle",
+    "empty edges list (should return nodes in any order, e.g., 0..num_nodes-1)",
+    "duplicate edges are guaranteed not to exist per constraints, but algorithm should still handle if they appear",
+    "invalid node indices outside 0..num_nodes-1 (should be ignored or raise error, but per constraints they won't occur)"
+  ],
+  "complexity_target": "O(num_nodes + len(edges)) Time, O(num_nodes + len(edges)) Space"
+}

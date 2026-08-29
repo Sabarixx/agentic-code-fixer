@@ -1,0 +1,11 @@
+{
+  "passed": 5,
+  "failed": 0,
+  "total": 5,
+  "all_passed": true,
+  "failure_details": [],
+  "stdout": ".....                                                                    [100%]\n5 passed in 0.04s\n",
+  "stderr": "",
+  "timed_out": false,
+  "error": ""
+}

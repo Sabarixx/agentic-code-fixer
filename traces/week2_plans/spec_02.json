@@ -1,0 +1,11 @@
+{
+  "approach": "1. Initialize three pointers: prev = None, curr = head, next_node = None.\n2. Iterate while curr is not None:\n   a. Store curr.next in next_node.\n   b. Set curr.next = prev (reverse link).\n   c. Move prev to curr.\n   d. Move curr to next_node.\n3. After loop, prev points to new head. Return prev.\n4. Handle empty list (head is None) by returning None.\n5. Ensure in-place reversal without extra list nodes.\n\nEdge cases: empty list, single node list, list with two nodes, list with negative values, list with maximum nodes (5000).",
+  "edge_cases": [
+    "head is None (empty list)",
+    "head has only one node",
+    "head has two nodes",
+    "list contains negative values",
+    "list contains maximum allowed nodes (5000)"
+  ],
+  "complexity_target": "O(N) Time, O(1) Space"
+}
