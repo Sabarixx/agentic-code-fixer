@@ -11,6 +11,7 @@ from langchain_groq import ChatGroq
 
 from agent.prompts.coder_prompt import (
     CODER_SYSTEM_PROMPT,
+    format_coder_retry_prompt,
     format_coder_user_prompt,
 )
 from agent.state import AgentState
@@ -64,10 +65,17 @@ def coder_node(state: AgentState) -> dict[str, Any]:
     """LangGraph Coder Node: generates Python solution code, validates AST, writes file."""
     spec = state.get("spec") or {}
     plan = state.get("plan") or {}
+    previous_code = state.get("code") or ""
+    test_results = state.get("test_results") or {}
     iteration_count = state.get("iteration_count", 0) + 1
     spec_id = spec.get("id", "spec_unknown")
 
-    user_prompt = format_coder_user_prompt(spec, plan)
+    # Use retry prompt if previous attempt failed test execution
+    if test_results and not test_results.get("all_passed", False) and previous_code:
+        user_prompt = format_coder_retry_prompt(spec, plan, previous_code, test_results)
+    else:
+        user_prompt = format_coder_user_prompt(spec, plan)
+
     llm = get_llm()
 
     messages = [

@@ -1,0 +1,9 @@
+spec_id,title,iterations_taken,final_status,passed_tests,total_tests
+spec_01,Two Sum,1,passed,5,5
+spec_02,Reverse Linked List,1,passed,5,5
+spec_03,Valid Parentheses,1,passed,5,5
+spec_04,Merge Intervals,1,passed,5,5
+spec_05,Group Anagrams,1,passed,5,5
+spec_06,Search in Rotated Sorted Array,1,passed,5,5
+spec_07,LRU Cache,1,passed,5,5
+spec_08,Topological Sort,1,passed,5,5

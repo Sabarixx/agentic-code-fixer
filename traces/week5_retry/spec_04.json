@@ -1,0 +1,33 @@
+{
+  "spec_id": "spec_04",
+  "title": "Merge Intervals",
+  "final_status": "passed",
+  "iterations_taken": 1,
+  "test_results": {
+    "passed": 5,
+    "failed": 0,
+    "total": 5,
+    "all_passed": true,
+    "failure_details": [],
+    "stdout": ".....                                                                    [100%]\n5 passed in 0.04s\n",
+    "stderr": "",
+    "timed_out": false,
+    "error": ""
+  },
+  "plan": {
+    "approach": "1. **Input validation** (optional but recommended):\n   * Ensure `intervals` is a list of lists, each inner list has length 2, and `start <= end`.\n   * If the list is empty, return an empty list.\n\n2. **Sorting**:\n   * Sort the intervals by their start value in ascending order. If two intervals have the same start, the order of their ends does not matter.\n   * Complexity: O(n log n).\n\n3. **Merging**:\n   * Initialize an empty list `merged`.\n   * Iterate over the sorted intervals:\n     * If `merged` is empty or the current interval\u2019s start is greater than the end of the last interval in `merged`, append the current interval to `merged`.\n     * Otherwise, the intervals overlap (including the case where `current.start == merged[-1].end`). Update the end of the last interval in `merged` to `max(merged[-1].end, current.end)`.\n   * This step is linear in the number of intervals.\n\n4. **Return** the `merged` list.\n\n**Why this works**:\n* Sorting guarantees that any overlapping intervals appear consecutively. By scanning once and merging adjacent overlaps, we ensure that all overlaps are resolved and no interval is missed.\n\n**Edge cases**:\n* Single interval \u2013 returns the same interval.\n* No overlaps \u2013 returns the original sorted list.\n* All intervals overlap \u2013 returns a single merged interval.\n* Intervals with identical start or end points.\n* Intervals where `start == end` (zero-length intervals).\n* Intervals that are already sorted.\n* Intervals that are unsorted.\n* Intervals with the same start but different ends.\n* Intervals that touch at a point (e.g., `[1,4]` and `[4,5]`) \u2013 should be merged.\n\n**Complexity**:\n* Time: O(n log n) due to sorting.\n* Space: O(n) for the output list (in-place merging would still need O(1) extra space beyond the output).\n",
+    "edge_cases": [
+      "Empty input list (should return empty list).",
+      "Single interval.",
+      "Intervals that do not overlap.",
+      "Intervals that all overlap into one.",
+      "Intervals with identical start values.",
+      "Intervals with identical end values.",
+      "Zero-length intervals where start == end.",
+      "Intervals that touch at a point (e.g., [1,4] and [4,5]).",
+      "Intervals unsorted in input."
+    ],
+    "complexity_target": "O(n log n) Time, O(n) Space"
+  },
+  "final_code": "from typing import List\n\ndef merge(intervals: List[List[int]]) -> List[List[int]]:\n    \"\"\"\n    Merge all overlapping intervals in the input list.\n\n    Parameters\n    ----------\n    intervals : List[List[int]]\n        A list of intervals where each interval is represented as [start, end].\n\n    Returns\n    -------\n    List[List[int]]\n        A list of merged, non-overlapping intervals sorted by start time.\n\n    Notes\n    -----\n    - Intervals that touch at a point (e.g., [1, 4] and [4, 5]) are merged.\n    - Zero-length intervals (start == end) are treated like any other interval.\n    - The function performs input validation and returns an empty list if the\n      input is empty or contains invalid intervals.\n    \"\"\"\n    # Input validation\n    if not intervals:\n        return []\n\n    # Ensure each interval is a list of two integers with start <= end\n    for idx, iv in enumerate(intervals):\n        if (\n            not isinstance(iv, list)\n            or len(iv) != 2\n            or not isinstance(iv[0], int)\n            or not isinstance(iv[1], int)\n            or iv[0] > iv[1]\n        ):\n            raise ValueError(f\"Invalid interval at index {idx}: {iv}\")\n\n    # Sort intervals by start value\n    sorted_intervals = sorted(intervals, key=lambda x: x[0])\n\n    merged: List[List[int]] = []\n\n    for current in sorted_intervals:\n        if not merged or current[0] > merged[-1][1]:\n            # No overlap; add the interval\n            merged.append(current.copy())\n        else:\n            # Overlap; merge with the last interval\n            merged[-1][1] = max(merged[-1][1], current[1])\n\n    return merged"
+}

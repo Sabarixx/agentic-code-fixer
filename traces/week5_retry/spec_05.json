@@ -1,0 +1,33 @@
+{
+  "spec_id": "spec_05",
+  "title": "Group Anagrams",
+  "final_status": "passed",
+  "iterations_taken": 1,
+  "test_results": {
+    "passed": 5,
+    "failed": 0,
+    "total": 5,
+    "all_passed": true,
+    "failure_details": [],
+    "stdout": ".....                                                                    [100%]\n5 passed in 0.05s\n",
+    "stderr": "",
+    "timed_out": false,
+    "error": ""
+  },
+  "plan": {
+    "approach": "1. Initialize an empty dictionary `anagram_map` where keys are the canonical representation of anagrams and values are lists of original strings.\n2. For each string `s` in `strs`:\n   - Compute its canonical key. Two common choices:\n     * Sort the characters of `s` (`''.join(sorted(s))`).\n     * Count the 26 lowercase letters and convert the count array to a tuple.\n   - Append `s` to `anagram_map[key]`.\n3. After processing all strings, return the list of all values from `anagram_map`.\n\nThis algorithm groups strings by their sorted character sequence (or letter counts), ensuring that all anagrams share the same key and are collected together.\n\nThe order of groups and the order within each group are not specified, so the dictionary order (Python 3.7+ preserves insertion order) is acceptable.\n\nComplexity: Sorting each string of length `k` costs `O(k log k)`. For `N` strings, total time is `O(N * k log k)` where `k` is the average length. Space usage is `O(N * k)` for storing the groups and keys.\n\nIf desired, using a 26\u2011letter count tuple gives `O(N * k)` time and the same space.\n",
+    "edge_cases": [
+      "Empty string '' in the list",
+      "All strings identical",
+      "All strings distinct",
+      "Single element list",
+      "Maximum length strings (100 characters)",
+      "Large number of strings (10^4)",
+      "Strings containing only one character",
+      "Strings with repeated characters",
+      "List containing duplicate strings"
+    ],
+    "complexity_target": "O(N * k log k) Time, O(N * k) Space"
+  },
+  "final_code": "from collections import defaultdict\nfrom typing import List\n\ndef group_anagrams(strs: List[str]) -> List[List[str]]:\n    \"\"\"\n    Group strings that are anagrams of each other.\n\n    Parameters\n    ----------\n    strs : List[str]\n        List of lowercase English strings.\n\n    Returns\n    -------\n    List[List[str]]\n        A list of groups, each containing strings that are anagrams.\n        The order of groups and the order within each group are not specified.\n    \"\"\"\n    anagram_map = defaultdict(list)\n\n    for s in strs:\n        key = ''.join(sorted(s))\n        anagram_map[key].append(s)\n\n    return list(anagram_map.values())"
+}

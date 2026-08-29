@@ -1,0 +1,25 @@
+{
+  "spec_id": "spec_02",
+  "title": "Reverse Linked List",
+  "final_status": "passed",
+  "iterations_taken": 1,
+  "test_results": {
+    "passed": 5,
+    "failed": 0,
+    "total": 5,
+    "all_passed": true,
+    "failure_details": [],
+    "stdout": ".....                                                                    [100%]\n5 passed in 0.06s\n",
+    "stderr": "",
+    "timed_out": false,
+    "error": ""
+  },
+  "plan": {
+    "approach": "1. Initialize three pointers: prev = None, curr = head, next_node = None.\n2. Iterate while curr is not None:\n   a. Store curr.next in next_node.\n   b. Set curr.next = prev (reverse link).\n   c. Move prev to curr.\n   d. Move curr to next_node.\n3. After loop, prev points to new head. Return prev.\n\nThis algorithm runs in O(n) time and O(1) extra space, where n is the number of nodes.",
+    "edge_cases": [
+      "Empty list (head is None) \u2013 should return None.\nSingle node list \u2013 should return the same node.\nList with negative values \u2013 handled normally.\nLarge list up to 5000 nodes \u2013 algorithm remains linear.\nAll nodes with same value \u2013 no special handling needed.\n"
+    ],
+    "complexity_target": "O(N) Time, O(1) Space"
+  },
+  "final_code": "from __future__ import annotations\nfrom typing import Optional\n\nclass ListNode:\n    def __init__(self, val: int = 0, next: Optional['ListNode'] = None):\n        self.val = val\n        self.next = next\n\ndef reverse_list(head: ListNode | None) -> ListNode | None:\n    \"\"\"\n    Reverse a singly linked list in place and return the new head.\n    \"\"\"\n    prev: ListNode | None = None\n    curr = head\n    while curr is not None:\n        next_node = curr.next\n        curr.next = prev\n        prev = curr\n        curr = next_node\n    return prev"
+}

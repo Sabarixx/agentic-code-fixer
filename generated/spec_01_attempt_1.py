@@ -15,18 +15,27 @@ def two_sum(nums: List[int], target: int) -> List[int]:
     -------
     List[int]
         Two indices whose corresponding values sum to `target`. The order of indices
-        is arbitrary.
+        is not specified.
+
+    Raises
+    ------
+    ValueError
+        If the input list has fewer than two elements.
 
     Notes
     -----
-    The function assumes exactly one valid pair exists and does not use the same
-    element twice. It runs in O(n) time and O(n) space.
+    The function assumes exactly one valid pair exists. It uses a hash map to
+    achieve O(n) time and O(n) space complexity.
     """
-    index_map = {}
-    for i, num in enumerate(nums):
+    if len(nums) < 2:
+        raise ValueError("Input list must contain at least two elements.")
+
+    seen = {}
+    for idx, num in enumerate(nums):
         complement = target - num
-        if complement in index_map:
-            return [index_map[complement], i]
-        index_map[num] = i
+        if complement in seen:
+            return [seen[complement], idx]
+        seen[num] = idx
+
     # The problem guarantees a solution, so this line should never be reached.
-    raise ValueError("No valid pair found")
+    raise RuntimeError("No valid pair found, despite problem constraints.")

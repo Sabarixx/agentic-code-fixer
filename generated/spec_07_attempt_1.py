@@ -1,79 +1,76 @@
-from collections import OrderedDict
-from typing import Dict
+from typing import Dict, Optional
 
 class LRUCache:
-    """
-    Least Recently Used (LRU) cache implementation with O(1) average time complexity
-    for get and put operations.
-
-    Attributes
-    ----------
-    capacity : int
-        Maximum number of items the cache can hold.
-    cache : OrderedDict[int, int]
-        Ordered dictionary storing key-value pairs. The order represents
-        usage recency, with the most recently used item at the end.
-    """
+    class _Node:
+        __slots__ = ("key", "value", "prev", "next")
+        def __init__(self, key: int = 0, value: int = 0):
+            self.key: int = key
+            self.value: int = value
+            self.prev: Optional["LRUCache._Node"] = None
+            self.next: Optional["LRUCache._Node"] = None
 
     def __init__(self, capacity: int) -> None:
-        """
-        Initialize the LRU cache with a given capacity.
-
-        Parameters
-        ----------
-        capacity : int
-            The maximum number of key-value pairs the cache can store.
-        """
         self.capacity: int = capacity
-        self.cache: OrderedDict[int, int] = OrderedDict()
+        self.cache: Dict[int, LRUCache._Node] = {}
+        self.size: int = 0
+
+        # Dummy head and tail nodes to avoid edge checks
+        self.head: LRUCache._Node = self._Node()
+        self.tail: LRUCache._Node = self._Node()
+        self.head.next = self.tail
+        self.tail.prev = self.head
+
+    def _add_to_head(self, node: "LRUCache._Node") -> None:
+        """Insert node right after head."""
+        node.prev = self.head
+        node.next = self.head.next
+        self.head.next.prev = node
+        self.head.next = node
+
+    def _remove_node(self, node: "LRUCache._Node") -> None:
+        """Detach node from its neighbors."""
+        prev_node = node.prev
+        next_node = node.next
+        if prev_node is not None:
+            prev_node.next = next_node
+        if next_node is not None:
+            next_node.prev = prev_node
+
+    def _move_to_head(self, node: "LRUCache._Node") -> None:
+        """Move an existing node to the head."""
+        self._remove_node(node)
+        self._add_to_head(node)
+
+    def _pop_tail(self) -> "LRUCache._Node":
+        """Remove and return the node just before the tail."""
+        node = self.tail.prev
+        if node is None or node is self.head:
+            raise RuntimeError("Attempting to pop from an empty cache")
+        self._remove_node(node)
+        return node
 
     def get(self, key: int) -> int:
-        """
-        Retrieve the value associated with the given key from the cache.
-
-        If the key exists, it is marked as most recently used.
-        If the key does not exist, return -1.
-
-        Parameters
-        ----------
-        key : int
-            The key to look up.
-
-        Returns
-        -------
-        int
-            The value associated with the key, or -1 if the key is not present.
-        """
-        if key not in self.cache:
+        node = self.cache.get(key)
+        if node is None:
             return -1
-        # Move the key to the end to mark it as recently used
-        self.cache.move_to_end(key)
-        return self.cache[key]
+        self._move_to_head(node)
+        return node.value
 
     def put(self, key: int, value: int) -> None:
-        """
-        Insert or update the value for a given key in the cache.
-
-        If the key already exists, its value is updated and it is marked as
-        most recently used. If the key does not exist and the cache is at
-        capacity, the least recently used item is evicted before insertion.
-
-        Parameters
-        ----------
-        key : int
-            The key to insert or update.
-        value : int
-            The value associated with the key.
-        """
-        if key in self.cache:
-            # Update existing key and mark as recently used
-            self.cache.move_to_end(key)
-            self.cache[key] = value
+        if self.capacity == 0:
             return
 
-        if len(self.cache) >= self.capacity:
-            # Evict least recently used item (first item in OrderedDict)
-            self.cache.popitem(last=False)
+        node = self.cache.get(key)
+        if node:
+            node.value = value
+            self._move_to_head(node)
+        else:
+            new_node = self._Node(key, value)
+            self.cache[key] = new_node
+            self._add_to_head(new_node)
+            self.size += 1
 
-        # Insert new key-value pair
-        self.cache[key] = value
+            if self.size > self.capacity:
+                tail = self._pop_tail()
+                del self.cache[tail.key]
+                self.size -= 1

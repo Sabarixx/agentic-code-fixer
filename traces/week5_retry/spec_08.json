@@ -1,0 +1,30 @@
+{
+  "spec_id": "spec_08",
+  "title": "Topological Sort",
+  "final_status": "passed",
+  "iterations_taken": 1,
+  "test_results": {
+    "passed": 5,
+    "failed": 0,
+    "total": 5,
+    "all_passed": true,
+    "failure_details": [],
+    "stdout": ".....                                                                    [100%]\n5 passed in 0.07s\n",
+    "stderr": "",
+    "timed_out": false,
+    "error": ""
+  },
+  "plan": {
+    "approach": "1. Build adjacency list and indegree array for all nodes.\n2. Initialize a queue (or stack) with all nodes that have indegree 0.\n3. Repeatedly pop a node from the queue, append it to the result list, and for each of its outgoing neighbors decrement their indegree. If a neighbor\u2019s indegree becomes 0, push it onto the queue.\n4. After processing, if the result list contains all num_nodes, return it as a valid topological order. Otherwise a cycle exists and return None.\n\nThis is Kahn\u2019s algorithm for topological sorting, which runs in linear time and uses linear auxiliary space.",
+    "edge_cases": [
+      "Graph with no edges (any order of nodes is valid).",
+      "Graph with a single node (return [0]).",
+      "Graph containing a cycle (return None).",
+      "Graph with multiple disconnected components (still topologically sortable).",
+      "Graph with self-loop edges (treated as a cycle, return None).",
+      "Large sparse graph where edges are far fewer than num_nodes^2."
+    ],
+    "complexity_target": "O(num_nodes + len(edges)) Time, O(num_nodes + len(edges)) Space"
+  },
+  "final_code": "from collections import deque\nfrom typing import List, Optional\n\ndef topological_sort(num_nodes: int, edges: List[List[int]]) -> List[int] | None:\n    \"\"\"\n    Perform a topological sort on a directed graph.\n\n    Parameters\n    ----------\n    num_nodes : int\n        Number of nodes in the graph, labeled from 0 to num_nodes-1.\n    edges : List[List[int]]\n        List of directed edges [u, v] meaning u must come before v.\n\n    Returns\n    -------\n    List[int] | None\n        A list representing a valid topological order of the nodes if one exists;\n        otherwise, None if the graph contains a cycle.\n    \"\"\"\n    # Build adjacency list and indegree array\n    adj = [[] for _ in range(num_nodes)]\n    indegree = [0] * num_nodes\n    for u, v in edges:\n        adj[u].append(v)\n        indegree[v] += 1\n\n    # Initialize queue with nodes having indegree 0\n    q = deque([i for i, deg in enumerate(indegree) if deg == 0])\n    order = []\n\n    while q:\n        node = q.popleft()\n        order.append(node)\n        for neigh in adj[node]:\n            indegree[neigh] -= 1\n            if indegree[neigh] == 0:\n                q.append(neigh)\n\n    # If all nodes are processed, return the order; otherwise, a cycle exists\n    return order if len(order) == num_nodes else None"
+}

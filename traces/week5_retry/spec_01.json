@@ -1,0 +1,34 @@
+{
+  "spec_id": "spec_01",
+  "title": "Two Sum",
+  "final_status": "passed",
+  "iterations_taken": 1,
+  "test_results": {
+    "passed": 5,
+    "failed": 0,
+    "total": 5,
+    "all_passed": true,
+    "failure_details": [],
+    "stdout": ".....                                                                    [100%]\n5 passed in 0.05s\n",
+    "stderr": "",
+    "timed_out": false,
+    "error": ""
+  },
+  "plan": {
+    "approach": "Use a hash map to store each number and its index while iterating through the list. For each element, compute the complement needed to reach the target. If the complement is already in the map, return the pair of indices. Otherwise, add the current number and its index to the map. This guarantees O(n) time and O(n) space.",
+    "edge_cases": [
+      "Input list length less than 2 (though constraints forbid this).",
+      "Duplicate values where the same number could be used twice \u2013 ensure the same element is not reused by checking indices.",
+      "Negative numbers and zero values.",
+      "Large positive or negative integers up to 10^9.",
+      "Target that is the sum of two numbers located at the very end of the list.",
+      "Exactly one solution guaranteed \u2013 no need to handle multiple or none cases.",
+      "Numbers that are repeated but only one valid pair exists \u2013 the algorithm will still find the correct pair.",
+      "Indices returned in any order \u2013 the algorithm can return them in the order found.",
+      "Input types not matching expected (non\u2011list or non\u2011int) \u2013 optional type checks.",
+      "Empty list or list with one element \u2013 should raise an error or return empty list."
+    ],
+    "complexity_target": "O(n) Time, O(n) Space"
+  },
+  "final_code": "from typing import List\n\ndef two_sum(nums: List[int], target: int) -> List[int]:\n    \"\"\"\n    Return indices of the two numbers in `nums` that add up to `target`.\n\n    Parameters\n    ----------\n    nums : List[int]\n        List of integers.\n    target : int\n        Target sum.\n\n    Returns\n    -------\n    List[int]\n        Two indices whose corresponding values sum to `target`. The order of indices\n        is not specified.\n\n    Raises\n    ------\n    ValueError\n        If the input list has fewer than two elements.\n\n    Notes\n    -----\n    The function assumes exactly one valid pair exists. It uses a hash map to\n    achieve O(n) time and O(n) space complexity.\n    \"\"\"\n    if len(nums) < 2:\n        raise ValueError(\"Input list must contain at least two elements.\")\n\n    seen = {}\n    for idx, num in enumerate(nums):\n        complement = target - num\n        if complement in seen:\n            return [seen[complement], idx]\n        seen[num] = idx\n\n    # The problem guarantees a solution, so this line should never be reached.\n    raise RuntimeError(\"No valid pair found, despite problem constraints.\")"
+}

@@ -1,0 +1,30 @@
+{
+  "spec_id": "spec_03",
+  "title": "Valid Parentheses",
+  "final_status": "passed",
+  "iterations_taken": 1,
+  "test_results": {
+    "passed": 5,
+    "failed": 0,
+    "total": 5,
+    "all_passed": true,
+    "failure_details": [],
+    "stdout": ".....                                                                    [100%]\n5 passed in 0.05s\n",
+    "stderr": "",
+    "timed_out": false,
+    "error": ""
+  },
+  "plan": {
+    "approach": "Use a stack to track opening brackets. Iterate through each character in the input string. If the character is an opening bracket ('(', '[', '{'), push it onto the stack. If it is a closing bracket (')', ']', '}'), first check that the stack is not empty; if it is empty, the string is invalid. Then pop the top element from the stack and verify that it matches the corresponding opening bracket for the current closing bracket. If it does not match, return False. After processing all characters, the string is valid only if the stack is empty (all opening brackets have been matched).",
+    "edge_cases": [
+      "String length is odd (impossible to be valid).",
+      "String contains only opening brackets.",
+      "String contains only closing brackets.",
+      "String has mismatched bracket types (e.g., '(]') or incorrect order (e.g., '([)]').",
+      "Empty string (should return True if considered valid, but constraints say length >=1).",
+      "Large input near 10^4 characters."
+    ],
+    "complexity_target": "O(n) Time, O(n) Space"
+  },
+  "final_code": "from typing import Dict, List\n\ndef is_valid(s: str) -> bool:\n    \"\"\"\n    Determine if the input string s is a valid parentheses string.\n\n    A string is valid if every opening bracket is closed by the same type of\n    bracket in the correct order, and every closing bracket has a matching\n    opening bracket.\n\n    Parameters\n    ----------\n    s : str\n        The string to validate, consisting only of '()[]{}'.\n\n    Returns\n    -------\n    bool\n        True if s is a valid parentheses string, False otherwise.\n    \"\"\"\n    # Quick check: odd length cannot be valid\n    if len(s) % 2 == 1:\n        return False\n\n    # Mapping of closing to opening brackets\n    pairs: Dict[str, str] = {')': '(', ']': '[', '}': '{'}\n    stack: List[str] = []\n\n    for ch in s:\n        if ch in pairs.values():          # opening bracket\n            stack.append(ch)\n        elif ch in pairs:                 # closing bracket\n            if not stack or stack[-1] != pairs[ch]:\n                return False\n            stack.pop()\n        else:\n            # Invalid character (should not happen per constraints)\n            return False\n\n    return not stack"
+}

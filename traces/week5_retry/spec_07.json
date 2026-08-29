@@ -1,0 +1,33 @@
+{
+  "spec_id": "spec_07",
+  "title": "LRU Cache",
+  "final_status": "passed",
+  "iterations_taken": 1,
+  "test_results": {
+    "passed": 5,
+    "failed": 0,
+    "total": 5,
+    "all_passed": true,
+    "failure_details": [],
+    "stdout": ".....                                                                    [100%]\n5 passed in 0.05s\n",
+    "stderr": "",
+    "timed_out": false,
+    "error": ""
+  },
+  "plan": {
+    "approach": "1. Use a hash map (dictionary) to map keys to nodes in a doubly linked list.\n2. The doubly linked list maintains the order of usage: head is most recently used, tail is least recently used.\n3. For each `get(key)`:\n   - If key not in map, return -1.\n   - Otherwise, move the corresponding node to the head of the list (mark as most recently used) and return its value.\n4. For each `put(key, value)`:\n   - If key already exists, update its value and move the node to the head.\n   - If key does not exist:\n     * Create a new node.\n     * Insert it at the head.\n     * Add key->node to the map.\n     * If the size exceeds capacity, remove the tail node (least recently used) and delete its key from the map.\n5. Helper functions:\n   - `add_to_head(node)` inserts node right after a dummy head.\n   - `remove_node(node)` detaches node from its neighbors.\n   - `move_to_head(node)` combines removal and addition.\n   - `pop_tail()` removes and returns the node just before the dummy tail.\n6. Use dummy head and tail nodes to simplify edge handling.\n7. All operations on the list are O(1). Hash map lookups are O(1). Thus each public method runs in O(1) average time.\n8. Space usage is O(capacity) for the map and list nodes.\n\nImplementation notes:\n- Define a nested `Node` class with attributes: key, value, prev, next.\n- In `__init__`, create dummy head and tail, link them, and initialize capacity, size, and map.\n- Ensure that after every `get` or `put` that updates usage, the node is moved to the head.\n- When evicting, call `pop_tail()` and delete the key from the map.\n- Return `None` for `put` and `None` for `LRUCache` constructor as per LeetCode style.\n\nEdge cases are handled in the next section.\n",
+    "edge_cases": [
+      "Capacity of 1 (every new put evicts previous entry).",
+      "Updating an existing key should not change the cache size but should move it to the head.",
+      "Calling get on a key that was just evicted should return -1.",
+      "Multiple consecutive get operations on the same key should keep it at the head without creating duplicates.",
+      "put with a key that already exists should overwrite the value and update usage order.",
+      "Capacity exactly equal to the number of unique keys inserted (no eviction).",
+      "Large number of operations (up to 2*10^5) should not cause recursion or stack overflow \u2013 use iterative list manipulation.",
+      "Keys or values at the boundary of allowed ranges (0, 10^4 for keys; 0, 10^5 for values).",
+      "Attempting to put when capacity is zero (though constraints say capacity>=1) \u2013 should handle gracefully by doing nothing or raising an error."
+    ],
+    "complexity_target": "O(1) Time per operation, O(capacity) Space"
+  },
+  "final_code": "from typing import Dict, Optional\n\nclass LRUCache:\n    class _Node:\n        __slots__ = (\"key\", \"value\", \"prev\", \"next\")\n        def __init__(self, key: int = 0, value: int = 0):\n            self.key: int = key\n            self.value: int = value\n            self.prev: Optional[\"LRUCache._Node\"] = None\n            self.next: Optional[\"LRUCache._Node\"] = None\n\n    def __init__(self, capacity: int) -> None:\n        self.capacity: int = capacity\n        self.cache: Dict[int, LRUCache._Node] = {}\n        self.size: int = 0\n\n        # Dummy head and tail nodes to avoid edge checks\n        self.head: LRUCache._Node = self._Node()\n        self.tail: LRUCache._Node = self._Node()\n        self.head.next = self.tail\n        self.tail.prev = self.head\n\n    def _add_to_head(self, node: \"LRUCache._Node\") -> None:\n        \"\"\"Insert node right after head.\"\"\"\n        node.prev = self.head\n        node.next = self.head.next\n        self.head.next.prev = node\n        self.head.next = node\n\n    def _remove_node(self, node: \"LRUCache._Node\") -> None:\n        \"\"\"Detach node from its neighbors.\"\"\"\n        prev_node = node.prev\n        next_node = node.next\n        if prev_node is not None:\n            prev_node.next = next_node\n        if next_node is not None:\n            next_node.prev = prev_node\n\n    def _move_to_head(self, node: \"LRUCache._Node\") -> None:\n        \"\"\"Move an existing node to the head.\"\"\"\n        self._remove_node(node)\n        self._add_to_head(node)\n\n    def _pop_tail(self) -> \"LRUCache._Node\":\n        \"\"\"Remove and return the node just before the tail.\"\"\"\n        node = self.tail.prev\n        if node is None or node is self.head:\n            raise RuntimeError(\"Attempting to pop from an empty cache\")\n        self._remove_node(node)\n        return node\n\n    def get(self, key: int) -> int:\n        node = self.cache.get(key)\n        if node is None:\n            return -1\n        self._move_to_head(node)\n        return node.value\n\n    def put(self, key: int, value: int) -> None:\n        if self.capacity == 0:\n            return\n\n        node = self.cache.get(key)\n        if node:\n            node.value = value\n            self._move_to_head(node)\n        else:\n            new_node = self._Node(key, value)\n            self.cache[key] = new_node\n            self._add_to_head(new_node)\n            self.size += 1\n\n            if self.size > self.capacity:\n                tail = self._pop_tail()\n                del self.cache[tail.key]\n                self.size -= 1"
+}

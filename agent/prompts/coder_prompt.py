@@ -47,3 +47,30 @@ def format_coder_user_prompt(spec: dict[str, Any], plan: dict[str, Any] | str) -
     prompt_parts.append("Please write the complete Python function implementation now:")
 
     return "\n\n".join(prompt_parts)
+
+
+def format_coder_retry_prompt(
+    spec: dict[str, Any],
+    plan: dict[str, Any] | str,
+    previous_code: str,
+    test_results: dict[str, Any],
+) -> str:
+    """Format retry prompt including previous code and failure tracebacks."""
+    base_prompt = format_coder_user_prompt(spec, plan)
+
+    failures = test_results.get("failure_details", [])
+    failure_msg = "\n".join(failures[:5]) if failures else "Unit tests failed."
+
+    retry_parts = [
+        base_prompt,
+        "--- PREVIOUS ATTEMPT (FAILED UNIT TESTS) ---",
+        f"```python\n{previous_code}\n```",
+        "--- TEST FAILURE DETAILS / TRACEBACK ---",
+        failure_msg,
+        "--- REPAIR INSTRUCTIONS ---",
+        "Analyze the test failure details above and fix the bug in your previous code.",
+        "Ensure your fix addresses the specific failure case while maintaining the required signature.",
+        "Return ONLY the updated executable Python code inside a ```python ... ``` code block.",
+    ]
+
+    return "\n\n".join(retry_parts)

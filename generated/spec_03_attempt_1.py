@@ -1,29 +1,40 @@
+from typing import Dict, List
+
 def is_valid(s: str) -> bool:
     """
-    Return True if s is a valid parentheses string.
-    A string is valid when open brackets are closed by the same type of brackets,
-    in the correct order, and every close has a matching open.
+    Determine if the input string s is a valid parentheses string.
+
+    A string is valid if every opening bracket is closed by the same type of
+    bracket in the correct order, and every closing bracket has a matching
+    opening bracket.
 
     Parameters
     ----------
     s : str
-        String consisting only of '()[]{}'.
+        The string to validate, consisting only of '()[]{}'.
 
     Returns
     -------
     bool
-        True if the string is valid, False otherwise.
+        True if s is a valid parentheses string, False otherwise.
     """
+    # Quick check: odd length cannot be valid
+    if len(s) % 2 == 1:
+        return False
+
     # Mapping of closing to opening brackets
-    pairs = {')': '(', ']': '[', '}': '{'}
-    stack = []
+    pairs: Dict[str, str] = {')': '(', ']': '[', '}': '{'}
+    stack: List[str] = []
 
     for ch in s:
-        if ch in pairs.values():  # opening bracket
+        if ch in pairs.values():          # opening bracket
             stack.append(ch)
-        else:  # closing bracket
+        elif ch in pairs:                 # closing bracket
             if not stack or stack[-1] != pairs[ch]:
                 return False
             stack.pop()
+        else:
+            # Invalid character (should not happen per constraints)
+            return False
 
     return not stack
