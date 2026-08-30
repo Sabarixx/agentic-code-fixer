@@ -4,3 +4,4 @@ langchain-groq
 pytest
 python-dotenv
 langsmith
+streamlit

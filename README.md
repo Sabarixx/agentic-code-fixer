@@ -55,6 +55,7 @@
   <a href="#-key-architecture">Key Architecture</a> •
   <a href="#-curated-problem-specs">Curated Specs</a> •
   <a href="#-quick-start">Quick Start</a> •
+  <a href="#-web-ui-extension">Web UI</a> •
   <a href="#-demo">Demo</a> •
   <a href="#-observability--tracing">Observability</a> •
   <a href="#-repository-structure">Repo Structure</a> •
@@ -169,6 +170,21 @@ The demo prints each stage (`[PLAN]`, `[CODE]`, `[TEST]`, `[REFACTOR]`) as it ex
 # Verify all 52 environment checks before a live demo
 .\venv\Scripts\python.exe scratch/verify_fresh_clone.py
 ```
+
+---
+
+## 🖥️ Web UI Extension
+
+A Streamlit web interface is available to inspect archived traces and run live specs:
+
+```powershell
+# Launch the Streamlit application
+.\venv\Scripts\streamlit.exe run ui/app.py
+```
+
+### Features:
+- **📊 Archived Run Viewer**: Browse all 8 archived DSA specs, review generated plans, inspect side-by-side code diffs (initial vs refactored), and examine unit test logs.
+- **⚡ Live Spec Runner**: Trigger live execution on any specification with real-time status updates per pipeline stage (`planner` ➔ `coder` ➔ `tester` ➔ `refactor`).
 
 ---
 

@@ -72,7 +72,7 @@ required_dirs = [
     "agent", "agent/nodes", "agent/prompts",
     "specs", "specs/tests", "specs/reference",
     "tools", "tests", "traces/final_run",
-    "generated", "docs",
+    "generated", "docs", "ui",
 ]
 for d in required_dirs:
     path = ROOT / d
@@ -99,6 +99,9 @@ required_files = [
     "docs/architecture.md",
     "docs/self_eval.md",
     "traces/week6_summary.md",
+    "ui/__init__.py",
+    "ui/app.py",
+    "ui/pipeline_bridge.py",
 ]
 for f in required_files:
     path = ROOT / f
@@ -113,6 +116,7 @@ packages = [
     ("langchain_groq", "langchain-groq"),
     ("pydantic", "pydantic"),
     ("dotenv", "python-dotenv"),
+    ("streamlit", "streamlit"),
 ]
 for module_name, pip_name in packages:
     try:
