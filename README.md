@@ -19,7 +19,7 @@
 </p>
 
 <p align="center">
-  <a href="#-badges--status"><img src="https://img.shields.io/badge/Version-v1.0--alpha-06B6D4?style=for-the-badge&logo=git&logoColor=white" alt="Version"></a>
+  <a href="#-badges--status"><img src="https://img.shields.io/badge/Version-v1.0--submission-06B6D4?style=for-the-badge&logo=git&logoColor=white" alt="Version"></a>
   <a href="https://python.org"><img src="https://img.shields.io/badge/Python-3.10%2B-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python"></a>
   <a href="https://langchain-ai.github.io/langgraph/"><img src="https://img.shields.io/badge/LangGraph-StateGraph-8B5CF6?style=for-the-badge&logo=langchain&logoColor=white" alt="LangGraph"></a>
   <a href="https://groq.com"><img src="https://img.shields.io/badge/LLM-Groq%20%2F%20Gemini-10B981?style=for-the-badge&logo=openai&logoColor=white" alt="LLM Provider"></a>
@@ -29,13 +29,33 @@
 
 ---
 
+<!-- RESULTS SUMMARY -->
+<p align="center">
+  <img src="https://img.shields.io/badge/Specs%20Solved-8%20%2F%208-10B981?style=for-the-badge" alt="8/8 Specs">
+  <img src="https://img.shields.io/badge/Tests%20Passing-40%20%2F%2040-10B981?style=for-the-badge&logo=pytest&logoColor=white" alt="40/40 Tests">
+  <img src="https://img.shields.io/badge/Refactor%20Passes%20Kept-8%20%2F%208-8B5CF6?style=for-the-badge" alt="Refactored">
+  <img src="https://img.shields.io/badge/Unhandled%20Failures-0-06B6D4?style=for-the-badge" alt="0 Failures">
+</p>
+
+<blockquote>
+<p align="center">
+  <b>🏆 Final Result:</b> All 8 specs autonomously solved · 40/40 unit tests passing · Every refactor pass kept · Zero sandbox timeouts or crashes<br>
+  Self-correction mechanisms verified via <code>tests/test_refactor_node.py</code> (discard-on-regression) and <code>tests/test_retry_loop.py</code> (retry router).<br>
+  Full evidence: <a href="traces/final_run/"><code>traces/final_run/</code></a> · Self-evaluation: <a href="docs/self_eval.md"><code>docs/self_eval.md</code></a> · Demo walkthrough: <a href="docs/demo_script.md"><code>docs/demo_script.md</code></a>
+</p>
+</blockquote>
+
+---
+
 ## 📌 Table of Contents
 
 <p align="center">
+  <a href="#-results-summary">Results</a> •
   <a href="#-overview">Overview</a> •
   <a href="#-key-architecture">Key Architecture</a> •
   <a href="#-curated-problem-specs">Curated Specs</a> •
   <a href="#-quick-start">Quick Start</a> •
+  <a href="#-demo">Demo</a> •
   <a href="#-observability--tracing">Observability</a> •
   <a href="#-repository-structure">Repo Structure</a> •
   <a href="#-state-schema-technical-reference-click-to-expand">State Schema</a> •
@@ -238,22 +258,46 @@ When running `python agent/graph.py`, inspect traces in your [LangSmith Dashboar
 
 ```text
 agentic-code-fixer/
-├── 📂 agent/                 # Core LangGraph implementation
-│   ├── 📄 state.py           # TypedDict AgentState schema & Status enum
-│   └── 📄 graph.py           # Compiled StateGraph & node definitions
-├── 📂 docs/                  # Project architecture & documentation
-│   └── 📄 architecture.md    # Locked architecture contract & design spec
-├── 📂 specs/                 # Evaluation benchmark domain
-│   ├── 📄 spec_01.json ...   # Problem definitions & function signatures
-│   ├── 📂 reference/         # Ground-truth reference implementations
-│   └── 📂 tests/             # 5 pytest unit tests per specification
-├── 📂 scratch/               # Prototyping scripts & LLM smoke tests
-│   └── 📄 test_llm.py
-├── 📂 assets/                # README visual assets & banners
-│   └── 🖼️ banner.jpg         # Cyber duotone header banner
-├── 📄 requirements.txt       # Project dependencies
-├── 📄 README.md              # Project documentation
-└── 📄 pytest.ini             # Pytest configuration
+├── 📂 agent/                       # Core LangGraph implementation
+│   ├── 📄 state.py                 # TypedDict AgentState schema & Status enum
+│   ├── 📄 graph.py                 # Compiled StateGraph & node wiring
+│   ├── 📄 router.py                # Conditional edge routing (retry + refactor)
+│   └── 📂 nodes/                   # One file per agent node
+│       ├── 📄 planner.py           # PlanOutput Pydantic model, structured plan
+│       ├── 📄 coder.py             # AST-validated code generation & retry prompt
+│       ├── 📄 tester.py            # Sandboxed pytest execution, TestResult schema
+│       └── 📄 refactor.py          # Code improvement + discard-on-regression safety
+├── 📂 docs/                        # Project documentation (all committed)
+│   ├── 📄 architecture.md          # Locked architecture contract (Week 1, never changed)
+│   ├── 📄 self_eval.md             # Week 7 self-evaluation (8 sections, evidence-grounded)
+│   └── 📄 demo_script.md           # Week 8 live demo talking script (6–8 min)
+├── 📂 specs/                       # Evaluation benchmark
+│   ├── 📄 spec_01.json … spec_08.json  # 8 problem definitions
+│   ├── 📂 reference/               # Ground-truth reference implementations
+│   └── 📂 tests/                   # 5 pytest unit tests per spec (40 total)
+├── 📂 tools/                       # Shared utilities
+│   ├── 📄 sandbox_runner.py        # Subprocess pytest isolation + timeout
+│   ├── 📄 file_writer.py           # Generated code file manager
+│   └── 📄 retry_utils.py           # Exponential backoff for LLM API calls
+├── 📂 tests/                       # Agent unit test suites (37 tests)
+│   ├── 📄 test_planner.py          # 9 tests — planner schema & edge cases
+│   ├── 📄 test_coder.py            # 14 tests — extraction, AST, file writer
+│   ├── 📄 test_tester_node.py      # 7 tests — sandbox, timeout, result model
+│   ├── 📄 test_retry_loop.py       # 5 tests — router branching logic
+│   └── 📄 test_refactor_node.py    # 2 tests — keep valid / revert on regression
+├── 📂 traces/                      # Evaluation evidence archive (read-only after Week 6)
+│   ├── 📂 final_run/               # 8 complete JSON traces + generated code archive
+│   ├── 📄 week6_summary.md         # Final evaluation results table (8/8 refactored)
+│   └── 📄 week6_failure_analysis.md # 0 failures
+├── 📂 generated/                   # All LLM code attempts (never manually pruned)
+├── 📂 scratch/                     # Utility scripts
+│   ├── 📄 run_demo.py              # Single-command live demo (all 4 nodes, colored output)
+│   └── 📄 verify_fresh_clone.py    # 52-check pre-demo environment verifier
+├── 📂 assets/                      # README visual assets
+│   └── 🖼️ banner.jpg               # Cyber duotone header banner
+├── 📄 requirements.txt             # Project dependencies
+├── 📄 README.md                    # Project documentation
+└── 📄 pytest.ini                   # Pytest configuration
 ```
 
 ---
