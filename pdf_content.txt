@@ -1,0 +1,715 @@
+​Option C — Multi-Agent Code-Fix System:​
+​Week-by-Week Execution Guide​
+​Scope decision (locked before Week 1):​​The system​​takes a function-level specification​
+​(name, signature, docstring, constraints) and a hidden test suite, then runs a Planner → Coder​
+​→ Tester loop — with a Refactor pass after tests first pass — until the code passes all tests or​
+​the iteration cap is hit. The evaluation domain is a fixed set of​​8 curated function specs​
+​(LeetCode/DSA-style — this doubles as reusable material for your own DSA practice). This​
+​bounded domain is what makes Option C tractable solo in 8 weeks; do not expand it to arbitrary​
+​codebases or multi-file projects.​
+​Total duration:​​8 weeks.​​Owner of every task below:​​you, solo.​​Weekly time budget​
+​assumed:​​~15 hrs weekday (3 hrs × 5) + ~8–10 hrs weekend​​= ~23–25 hrs/week.​
+​Architecture decision (make this Week 1, Day 1, don't revisit later):​​Implement the three​
+​roles (Planner, Coder, Tester) as three distinct LangGraph nodes sharing one typed state object​
+​—​​not​​as separate AutoGen/CrewAI agents with independent​​memories. This is materially​
+​simpler to debug solo, still satisfies "multi-agent" per course terms (distinct roles, distinct​
+​prompts, distinct responsibilities, coordinated via graph edges), and reuses the LangGraph skill​
+​path from the course.​
+​Week 1 — Environment, Architecture, Domain Curation​
+​1. Primary Objectives​
+​1.​ ​Working Python + LangGraph environment with LLM API access confirmed.​
+​2.​ ​Finalized state schema (written to​​docs/architecture.md​).​
+​3.​ ​Exactly 8 function specs curated and committed, each with 5+ test cases.​
+​Secondary Priorities​
+​-​
+​Git repo initialized with the folder structure in Section "Repo Structure" below.​
+​-​
+​LangSmith account created and API key stored in​​.env​.​
+​2. Task Breakdown (Mon–Sun)​
+​-​
+​Mon (2 hrs):​​Create GitHub repo​​agentic-code-fixer​.​​Add​​.gitignore​,​
+​requirements.txt​​with​​langgraph​,​​langchain​,​​langchain-groq​​(or​
+​langchain-google-genai​),​​pytest​,​​python-dotenv​,​​langsmith​.​​Run​​pip​
+
+--- Page {i+1} ---
+​install -r requirements.txt​. Confirm a single​
+​ChatGroq​/​ChatGoogleGenerativeAI​​call returns text​​in a throwaway script​
+​scratch/test_llm.py​.​
+​-​
+​Tue (2 hrs):​​Write​​docs/architecture.md​​with a state​​schema table: fields =​​spec​
+​(dict),​​plan​​(dict),​​code​​(str),​​test_results​​(dict),​​iteration_count​​(int),​​status​
+​(enum: planning/coding/testing/refactoring/done/failed). Draw the node graph​
+​(Planner→Coder→Tester→conditional edges) as an ASCII or Mermaid diagram in the​
+​same file.​
+​-​
+​Wed (2 hrs):​​Write​​LangGraph​​skeleton in​​agent/graph.py​:​​define the​​TypedDict​
+​state from Tuesday, add 3 placeholder nodes (​planner_node​,​​coder_node​,​
+​tester_node​) that each just print their name and pass​​state through unchanged, wire​
+​them in a straight line (no conditionals yet), compile and run once end-to-end on a​
+​dummy input.​
+​-​
+​Thu (2 hrs):​​Curate specs 1–4 (start with easiest​​— e.g., "two sum", "reverse a linked​
+​list", "valid parentheses", "merge intervals"). For each: write the function signature +​
+​docstring + constraints in​​specs/spec_XX.json​, and​​write 5 pytest test cases per​
+​spec in​​specs/tests/test_spec_XX.py​​using a known-correct​​reference solution​
+​you write yourself (so you have ground truth to validate the tester tool against later).​
+​-​
+​Fri (2 hrs):​​Curate specs 5–8 (slightly harder — e.g.,​​"group anagrams", "binary search​
+​on rotated array", "LRU cache", "topological sort"). Same format as Thursday.​
+​-​
+​Sat (3 hrs):​​Set up LangSmith tracing (​LANGCHAIN_TRACING_V2=true​​env vars),​
+​confirm the Wednesday skeleton run appears as a trace in the LangSmith dashboard.​
+​Write​​README.md​​with project one-liner, setup instructions,​​and the scope statement​
+​from the top of this document (verbatim).​
+​-​
+​Sun (2 hrs):​​Buffer / catch-up on any of the above.​​Commit everything with message​
+​week1: env, architecture, 8 curated specs​.​
+​3. Required Resources​
+​-​
+​Groq or Gemini API key (you already have this from SchoolGPT).​
+​-​
+​LangSmith free-tier account (new signup, 5 min).​
+​-​
+​No external stakeholders — solo end to end.​
+​4. Potential Obstacles & Mitigations​
+​-​
+​Obstacle:​​Spending too long picking "perfect" specs.​​Mitigation:​​Timebox spec curation​
+​to 4 hrs total (Thu+Fri) — pick well-known problems, don't invent novel ones.​
+​-​
+​Obstacle:​​LLM API key/quota issues discovered late.​​Mitigation:​​Validate the API call​
+​on Monday, day one, before building anything else.​
+​-​
+​Obstacle:​​Reference solutions you write yourself contain​​bugs, poisoning your test​
+​ground truth.​​Mitigation:​​Run every reference solution​​against its own tests locally​
+​before committing (​pytest specs/tests/​) — all 40 tests​​(8 specs × 5) must pass​
+​against your reference implementations by Sunday.​
+
+--- Page {i+1} ---
+​5. Checkpoint Questions (ask yourself Sunday night)​
+​-​
+​Can I run​​python agent/graph.py​​and see all 3 placeholder​​nodes execute in​
+​order?​
+​-​
+​Do all 8 spec folders exist with a spec file and 5 passing tests each against my own​
+​reference solution?​
+​-​
+​Can I see a trace of Wednesday's run in the LangSmith dashboard?​
+​Go / No-Go Criteria (end of Week 1)​
+​-​
+​GO​​if: skeleton graph runs end-to-end AND all 40 reference​​tests pass AND LangSmith​
+​shows at least one trace.​
+​-​
+​NO-GO / remediate before Week 2​​if: any reference​​test fails (fix the reference solution,​
+​not the test) or the LLM API call is not reliably returning responses.​
+​-​
+​Dependency flag:​​Week 2 cannot begin until the state​​schema in​
+​docs/architecture.md​​is finalized — changing the schema​​mid-build in later weeks​
+​will cascade rework through all three nodes.​
+​Week 2 — Planner Agent​
+​1. Primary Objectives​
+​1.​ ​planner_node​​takes a spec and produces a structured​​plan: approach description,​
+​edge cases to handle, and a suggested algorithmic strategy.​
+​2.​ ​Planner output is validated against a fixed schema (not free text) so the Coder node can​
+​consume it reliably.​
+​Secondary Priorities​
+​-​
+​Prompt template stored separately in​​agent/prompts/planner_prompt.py​​for easy​
+​iteration.​
+​2. Task Breakdown​
+​-​
+​Mon (2 hrs):​​Define​​PlanOutput​​as a Pydantic model:​​approach: str​,​
+​edge_cases: list[str]​,​​complexity_target: str​. Write​
+​agent/prompts/planner_prompt.py​​with a prompt instructing​​the LLM to return​
+​exactly this structure. Use LangChain's structured output /​​with_structured_output​
+​method.​
+​-​
+​Tue (2 hrs):​​Implement​​planner_node​​to call the LLM​​with the prompt + spec, parse​
+​into​​PlanOutput​, write it to​​state["plan"]​. Test manually​​on spec_01 only — print​
+
+--- Page {i+1} ---
+​the resulting plan and read it for sanity (does the "approach" actually match a correct​
+​two-sum strategy?).​
+​-​
+​Wed (2 hrs):​​Run the planner on all 8 specs (a throwaway​​script, not the full graph yet).​
+​Save each output to​​traces/week2_plans/spec_XX.json​.​​Manually read all 8 —​
+​flag any where the approach is wrong or vague.​
+​-​
+​Thu (2 hrs):​​For any spec where the plan was wrong/vague​​on Wednesday, revise​
+​planner_prompt.py​​(add examples, tighten instructions)​​and re-run only those specs.​
+​Target: 8/8 plans you'd judge as "correct algorithmic approach" by end of day.​
+​-​
+​Fri (1.5 hrs):​​Add error handling: if structured parsing​​fails (malformed LLM output), retry​
+​once with a stricter reformatting instruction before failing the node. Write this as an​
+​explicit​​try/except​​with one retry, not a silent failure.​
+​-​
+​Sat (2 hrs):​​Write​​tests/test_planner.py​​with pytest:​​assert​​planner_node​
+​returns a​​PlanOutput​-shaped dict for each of the 8​​specs, without asserting​
+​correctness of content (that was your manual read on Wed/Thu).​
+​-​
+​Sun (1 hr):​​Buffer + commit:​​week2: planner node,​​8/8 plans validated​
+​manually​.​
+​3. Required Resources​
+​-​
+​Your 8 curated specs from Week 1 (dependency — do not proceed without them​
+​finalized).​
+​-​
+​No new external tools this week.​
+​4. Potential Obstacles & Mitigations​
+​-​
+​Obstacle:​​LLM returns inconsistent structure despite​​with_structured_output​.​
+​Mitigation:​​Add the one-retry-with-stricter-instruction​​pattern from Friday; if still failing​
+​after 2 tries, log the raw output to​​traces/failures/​​for later prompt debugging​
+​rather than crashing the run.​
+​-​
+​Obstacle:​​Plans are technically well-formatted but​​algorithmically wrong.​​Mitigation:​
+​This is a prompt quality problem, not a code problem — budget Thursday specifically for​
+​prompt iteration, don't try to "fix" it by adding code-level validation of algorithmic​
+​correctness (out of scope, that's the Tester's job later).​
+​5. Checkpoint Questions​
+​-​
+​Do I have 8 saved plan outputs, one per spec, in​​traces/week2_plans/​?​
+​-​
+​Did I personally read all 8 and judge them algorithmically sound?​
+​-​
+​Does​​pytest tests/test_planner.py​​pass?​
+​Go / No-Go Criteria​
+​-​
+​GO​​if: 8/8 plans judged correct AND​​test_planner.py​​passes AND​
+​retry-on-malformed-output logic is in place.​
+
+--- Page {i+1} ---
+​-​
+​NO-GO​​if: fewer than 6/8 plans are algorithmically sound — spend up to 2 extra days on​
+​prompt iteration before moving on; do not carry a broken Planner into Week 3, since​
+​Coder quality is capped by Planner quality.​
+​-​
+​Dependency flag:​​Week 3 (Coder) consumes​​PlanOutput​​directly — do not change​
+​the​​PlanOutput​​schema after this week without re-touching​​Week 3's node signature.​
+​Week 3 — Coder Agent + File Tool​
+​1. Primary Objectives​
+​1.​ ​coder_node​​takes​​state["plan"]​​+​​state["spec"]​​and​​produces a complete​
+​Python function implementation as a string.​
+​2.​ ​A file-write tool saves the generated code to a real​​.py​​file so the Tester (Week 4) can​
+​import and run it.​
+​Secondary Priorities​
+​-​
+​Code is saved with a consistent naming convention​
+​(​generated/spec_XX_attempt_N.py​) so every iteration​​is preserved for your​
+​evaluation evidence later.​
+​2. Task Breakdown​
+​-​
+​Mon (2 hrs):​​Write​​agent/prompts/coder_prompt.py​:​​instructs the LLM to write a​
+​single Python function matching the spec's signature, using the plan's approach, with no​
+​explanatory prose — code only, inside a fenced block you can reliably extract.​
+​-​
+​Tue (2 hrs):​​Implement​​coder_node​: call LLM, extract​​code from the response (strip​
+​markdown fences with a regex or LangChain's code-block parser), store in​
+​state["code"]​.​
+​-​
+​Wed (2 hrs):​​Implement​​tools/file_writer.py​: a function​
+​write_code_to_file(spec_id, attempt_n, code) -> filepath​​that writes​
+​to​​generated/​. Call it from​​coder_node​​(or a dedicated​​tool-call step) after​
+​generation.​
+​-​
+​Thu (2 hrs):​​Run Planner→Coder in sequence (still​​no Tester) on all 8 specs. For each,​
+​manually open the generated file and read the code — does it look plausible (correct​
+​signature, no syntax errors visible by eye)?​
+​-​
+​Fri (1.5 hrs):​​Add a syntax-validation step: after​​writing the file, attempt​​ast.parse()​
+​on the code; if it fails, log the syntax error and set​​state["status"] =​
+​"coder_syntax_error"​​rather than passing broken code​​downstream silently.​
+
+--- Page {i+1} ---
+​-​
+​Sat (2 hrs):​​Write​​tests/test_coder.py​: assert that for each of the 8 specs,​
+​coder_node​​produces code that passes​​ast.parse()​​without​​error, and that a file​
+​exists at the expected path.​
+​-​
+​Sun (1 hr):​​Buffer + commit:​​week3: coder node, file​​tool, 8/8​
+​syntactically valid​.​
+​3. Required Resources​
+​-​
+​Finalized​​PlanOutput​​schema from Week 2 (dependency).​
+​-​
+​No new external accounts.​
+​4. Potential Obstacles & Mitigations​
+​-​
+​Obstacle:​​LLM wraps code in extra prose despite instructions,​​breaking extraction.​
+​Mitigation:​​Use a strict regex for fenced code blocks​​(​```python ... ```​) and fall​
+​back to treating the entire response as code only if no fence is found — log which path​
+​was taken for debugging.​
+​-​
+​Obstacle:​​Generated code has correct syntax but wrong​​function name/signature,​
+​breaking the Tester's ability to import it.​​Mitigation:​​Add a signature-check (compare​
+​against​​spec["signature"]​​via​​ast​​inspection) as part​​of Friday's validation, not just​
+​raw​​ast.parse()​.​
+​5. Checkpoint Questions​
+​-​
+​Do 8 generated​​.py​​files exist in​​generated/​, one​​per spec?​
+​-​
+​Do all 8 pass​​ast.parse()​?​
+​-​
+​Does the function name/signature in each generated file match the spec exactly?​
+​Go / No-Go Criteria​
+​-​
+​GO​​if: 8/8 files generated, syntactically valid, with​​matching signatures.​
+​-​
+​NO-GO​​if: fewer than 6/8 have valid syntax — this​​usually means the extraction regex is​
+​wrong, not the LLM; fix extraction before moving on.​
+​-​
+​Dependency flag:​​Week 4's Tester node directly imports​​files from​​generated/​​— the​
+​file-writer's naming convention must be finalized this week; changing it later breaks the​
+​Tester's file-discovery logic.​
+
+--- Page {i+1} ---
+​Week 4 — Tester Agent + Sandboxed Execution​
+​1. Primary Objectives​
+​1.​ ​tester_node​​runs the generated code against the spec's​​real pytest test file in an​
+​isolated subprocess and captures pass/fail + error details.​
+​2.​ ​Execution is sandboxed with a timeout and no network access, to protect your own​
+​machine from runaway or malicious-looking generated code.​
+​Secondary Priorities​
+​-​
+​Structured​​TestResult​​output (pass count, fail count,​​failure messages) usable by the​
+​Refactor/retry logic in Week 5.​
+​2. Task Breakdown​
+​-​
+​Mon (2.5 hrs):​​Implement​​tools/sandbox_runner.py​:​​use​
+​subprocess.run([...], timeout=10, cwd=temp_dir)​​to​​execute​​pytest​
+​generated/spec_XX_attempt_N.py specs/tests/test_spec_XX.py​
+​--json-report​​in an isolated temp directory. Confirm​​this works manually on​
+​spec_01's Week 3 output.​
+​-​
+​Tue (2 hrs):​​Parse the pytest JSON report into a​​TestResult​​Pydantic model:​
+​passed: int​,​​failed: int​,​​failure_details: list[str]​,​​all_passed:​
+​bool​. Wire this into​​tester_node​.​
+​-​
+​Wed (2 hrs):​​Add sandbox safety constraints: run subprocess​​with​​timeout=10​​(hard​
+​kill on hang), no network calls possible (no proxy/env vars passed through), and restrict​
+​working directory to a fresh temp folder per run so generated code can't touch your real​
+​filesystem.​
+​-​
+​Thu (2 hrs):​​Run Tester on all 8 of Week 3's generated​​files against their real test suites.​
+​Record results in​​traces/week4_test_results/spec_XX.json​.​​Expect several​
+​failures — that's expected and useful, not a problem to fix yet.​
+​-​
+​Fri (1.5 hrs):​​Handle the "code doesn't even import"​​case explicitly (e.g.,​​ImportError​,​
+​NameError​​from a bad signature) — these should be​​captured as a​​TestResult​​with​
+​all_passed=False​​and a clear​​failure_details​​message,​​not crash the node.​
+​-​
+​Sat (2 hrs):​​Write​​tests/test_tester_node.py​: feed​​it a hand-written​
+​known-correct solution (your Week 1 reference) and known-broken solution (deliberately​
+​buggy) and assert the tester correctly reports pass/fail for each.​
+​-​
+​Sun (1 hr):​​Buffer + commit:​​week4: tester node, sandboxed​​execution, 8/8​
+​results captured​.​
+​3. Required Resources​
+​-​
+​Week 3's 8 generated files (dependency).​
+
+--- Page {i+1} ---
+​-​
+​Week 1's reference solutions and test files (dependency, reused here as sandbox​
+​validation fixtures).​
+​4. Potential Obstacles & Mitigations​
+​-​
+​Obstacle:​​subprocess​​timeout kills legitimate slow-but-correct​​solutions (e.g., an​
+​inefficient but valid algorithm).​​Mitigation:​​Set​​timeout to 10 seconds — generous for​
+​spec-level problems — and if you see a timeout on Thursday's run, manually check​
+​whether it's a real infinite loop before assuming it's a timing issue.​
+​-​
+​Obstacle:​​Sandbox isn't actually isolated (subprocess​​inherits your shell's file access).​
+​Mitigation:​​Explicitly set​​cwd​​to a fresh​​tempfile.mkdtemp()​​per run and pass a​
+​minimal​​env​​dict rather than inheriting​​os.environ​​wholesale.​
+​-​
+​Obstacle:​​pytest JSON report plugin not installed/configured​​correctly.​​Mitigation:​
+​Install​​pytest-json-report​​on Monday before writing​​any parsing code; confirm the​
+​raw JSON output format by eye first.​
+​5. Checkpoint Questions​
+​-​
+​Does the sandbox correctly report "pass" on my hand-written correct solution and "fail"​
+​with specific error messages on my hand-written broken solution?​
+​-​
+​Are all 8 of Week 3's generated files now tested, with results saved?​
+​-​
+​Does a deliberately infinite-looping test case get killed within 10 seconds rather than​
+​hanging?​
+​Go / No-Go Criteria​
+​-​
+​GO​​if: sandbox correctly distinguishes pass/fail on​​your two hand-written fixtures AND all​
+​8 real results are captured AND the timeout kill is confirmed working.​
+​-​
+​NO-GO​​if: the sandbox reports false positives (says​​"pass" on known-broken code) —​
+​this is a correctness-critical bug, do not proceed to Week 5 until fixed, since the entire​
+​self-correction loop depends on the Tester being trustworthy.​
+​-​
+​Dependency flag:​​Week 5 wires Planner→Coder→Tester​​into a loop — this cannot​
+​begin until the Tester's​​TestResult​​schema is stable​​and proven accurate on the​
+​fixtures above.​
+
+--- Page {i+1} ---
+​Week 5 — Full Loop Integration (Planner → Coder → Tester →​
+​Retry)​
+​1. Primary Objectives​
+​1.​ ​Wire all three nodes into one LangGraph with a conditional edge:​​all_passed ==​
+​True​​→ finalize;​​all_passed == False​​and​​iteration_count < 4​​→ route back​
+​to Coder with failure feedback appended to the prompt;​​iteration_count >= 4​​→​
+​mark​​status = "failed"​​and stop.​
+​2.​ ​Successfully run the full loop end-to-end on at least 2 specs, including at least one that​
+​requires more than one iteration to pass.​
+​Secondary Priorities​
+​-​
+​Feed the Tester's​​failure_details​​back into the Coder's​​prompt on retry (not just "try​
+​again" — the actual error message).​
+​2. Task Breakdown​
+​-​
+​Mon (2.5 hrs):​​Implement the conditional edge function​​in​​agent/graph.py​​using​
+​LangGraph's​​add_conditional_edges​, based on​
+​state["test_results"]["all_passed"]​​and​​state["iteration_count"]​.​
+​Increment​​iteration_count​​inside​​coder_node​​on every​​re-entry.​
+​-​
+​Tue (2.5 hrs):​​Modify​​coder_prompt.py​​to accept an​​optional​​previous_failure​
+​field; when present, explicitly instruct the LLM to fix that specific failure rather than​
+​rewriting from scratch. Wire​​state["test_results"]["failure_details"]​​into​
+​this field on retry.​
+​-​
+​Wed (2 hrs):​​Run the full loop on spec_01 (expected​​to likely pass first try, since it's the​
+​easiest) and spec_07/08 (expected to need 1–2 retries). Watch the LangSmith trace live​
+​while it runs.​
+​-​
+​Thu (2 hrs):​​Debug whatever broke on Wednesday — common​​issues: state not​
+​persisting​​iteration_count​​correctly across loop edges,​​or the retry prompt not​
+​actually including the failure detail. Re-run until at least one spec demonstrably​
+​self-corrects (fails attempt 1, passes attempt 2).​
+​-​
+​Fri (2 hrs):​​Run the full loop on all remaining specs​​(2–6). Save every trace.​
+​-​
+​Sat (2.5 hrs):​​Review all 8 final traces. For each,​​record in​
+​traces/week5_summary.csv​: spec_id, iterations_taken,​​final_status (passed/failed),​
+​and — critically — flag the specific trace that shows a genuine fail→retry→pass​
+​sequence as your primary evidence artifact for the validation checklist.​
+​-​
+​Sun (1.5 hrs):​​Buffer + commit:​​week5: full loop integrated,​​N/8 specs​
+​passing​.​
+
+--- Page {i+1} ---
+​3. Required Resources​
+​-​
+​Weeks 2–4 nodes, all individually validated (hard dependency — do not attempt this​
+​week if any prior Go/No-Go was a No-Go).​
+​-​
+​LangSmith dashboard open throughout for live debugging.​
+​4. Potential Obstacles & Mitigations​
+​-​
+​Obstacle:​​Infinite-feeling loops where the Coder makes​​the same mistake every retry.​
+​Mitigation:​​The hard cap of 4 iterations (already​​in your conditional edge) prevents​
+​runaway cost/time — treat a spec that fails all 4 as a valid "failed" outcome to report, not​
+​a bug to chase indefinitely this week.​
+​-​
+​Obstacle:​​State mutation bugs (e.g.,​​iteration_count​​resetting instead of​
+​incrementing).​​Mitigation:​​Add a​​print(state["iteration_count"])​​at the top of​
+​coder_node​​during Wed/Thu debugging; remove once confirmed​​correct.​
+​-​
+​Obstacle:​​Retry prompts balloon in length across iterations​​if you accumulate all past​
+​failures instead of just the latest.​​Mitigation:​​Only​​pass the most recent​
+​failure_details​, not the full history, to keep prompts​​bounded.​
+​5. Checkpoint Questions​
+​-​
+​Can I point to one specific saved trace showing fail → retry with feedback → pass?​
+​-​
+​Does the loop correctly stop at 4 iterations for at least one deliberately hard spec, rather​
+​than looping forever?​
+​-​
+​How many of the 8 specs pass by end of week (target: at least 5/8 — this is your​
+​headline result)?​
+​Go / No-Go Criteria​
+​-​
+​GO​​if: at least 5/8 specs pass AND you have one clearly​​documented self-correction​
+​trace AND the iteration cap is confirmed working.​
+​-​
+​NO-GO​​if: fewer than 3/8 specs ever pass — pause new​​work and spend up to 3 extra​
+​days specifically improving​​coder_prompt.py​'s retry​​instructions before proceeding,​
+​since Weeks 6–8 all assume a working core loop.​
+​-​
+​Dependency flag:​​Week 6 (Refactor pass) only applies​​to specs that already passed —​
+​cannot begin meaningfully until at least a few specs reach​​status = "done"​.​
+
+--- Page {i+1} ---
+​Week 6 — Refactor Pass, Full Evaluation Run, Tracing Polish​
+​1. Primary Objectives​
+​1.​ ​Add a 4th node,​​refactor_node​, that runs once after a spec first passes: asks the​
+​LLM to improve readability/efficiency of passing code, then re-runs the Tester to confirm​
+​the refactor didn't break anything (revert to pre-refactor version if it did).​
+​2.​ ​Execute the complete, final pipeline across all 8 specs in one clean run and archive all​
+​traces as your evaluation evidence.​
+​Secondary Priorities​
+​-​
+​Graceful handling of API errors/rate limits during the full run (retry with backoff).​
+​2. Task Breakdown​
+​-​
+​Mon (2 hrs):​​Write​​agent/prompts/refactor_prompt.py​​and​​refactor_node​:​
+​takes passing code, asks for an improved version (better naming, reduced complexity),​
+​stores as a candidate.​
+​-​
+​Tue (2 hrs):​​Wire​​refactor_node​​after the "all tests​​passed" branch: run Tester again​
+​on the refactored candidate; if it still passes, replace​​state["code"]​​with the​
+​refactored version and log the diff; if it fails, keep the original and log that the refactor​
+​attempt was discarded.​​This discard-on-regression​​behavior is itself a second,​
+​distinct self-correction example worth highlighting later.​
+​-​
+​Wed (1.5 hrs):​​Add exponential backoff (​tenacity​​library​​or a manual retry loop, 3​
+​attempts, 2/4/8-second waits) around all LLM calls to handle transient API errors during​
+​long runs.​
+​-​
+​Thu (2.5 hrs):​​Execute the complete pipeline (Planner→Coder→Tester→retry​
+​loop→Refactor) fresh, from a clean​​generated/​​folder,​​across all 8 specs in one sitting.​
+​Do not stop to debug mid-run — let it complete, take notes on failures for Friday.​
+​-​
+​Fri (2 hrs):​​Triage Thursday's failures. For any spec​​still failing after 4 iterations, do ONE​
+​manual investigation each (max 30 min per spec) to note​​why​​in​
+​traces/week6_failure_analysis.md​​— this is evaluation​​material, not something​
+​you must fix.​
+​-​
+​Sat (2.5 hrs):​​Archive the full run: copy all traces,​​generated code (all attempts, not just​
+​final), and test results into​​traces/final_run/​. Write​​traces/week6_summary.md​
+​with a results table (spec, iterations, passed Y/N, refactored Y/N).​
+​-​
+​Sun (1.5 hrs):​​Buffer + commit:​​week6: refactor pass​​added, full 8-spec​
+​evaluation run archived​.​
+​3. Required Resources​
+​-​
+​Working Week 5 loop (hard dependency).​
+
+--- Page {i+1} ---
+​-​
+​Stable internet/API access for the uninterrupted Thursday run.​
+​4. Potential Obstacles & Mitigations​
+​-​
+​Obstacle:​​Refactor pass introduces subtle bugs the​​original tests don't catch.​
+​Mitigation:​​This is fine and expected — it's exactly​​why you re-run the Tester after​
+​refactoring rather than trusting the refactor blindly; if it happens, it's a positive example of​
+​the discard-on-regression safety net working.​
+​-​
+​Obstacle:​​A long unattended run (Thu) hits an API​​rate limit and stalls.​​Mitigation:​​The​
+​Wednesday backoff logic should handle transient limits; if a hard quota is hit, split the​
+​8-spec run into two batches of 4 rather than debugging mid-run.​
+​-​
+​Obstacle:​​Temptation to keep "fixing" the 1–3 specs​​that fail after 4 iterations.​
+​Mitigation:​​Hard timebox of 30 min/spec on Friday​​— a documented, understood failure​
+​is acceptable evaluation material; unlimited debugging here risks Weeks 7–8.​
+​5. Checkpoint Questions​
+​-​
+​Does​​refactor_node​​correctly discard a regressive​​refactor and keep the original in at​
+​least one observed case (even a synthetic test you force)?​
+​-​
+​Is there a complete, archived record (​traces/final_run/​)​​covering all 8 specs from a​
+​single clean run?​
+​-​
+​Do I have a written, specific explanation for every spec that didn't pass?​
+​Go / No-Go Criteria​
+​-​
+​GO​​if: full 8-spec run completed and archived AND​​refactor discard behavior is​
+​confirmed working AND failure analysis is written for any non-passing specs.​
+​-​
+​NO-GO​​if: the full run couldn't complete without crashing​​— fix the crash (likely an​
+​unhandled exception path) before Week 7; do not proceed to documentation with a​
+​system that can't run end-to-end unattended.​
+​-​
+​Dependency flag:​​Week 7's documentation and demo depend​​entirely on this week's​
+​archived​​traces/final_run/​​— do not delete or overwrite​​it in subsequent weeks.​
+​Week 7 — Testing, Hardening, Documentation​
+​1. Primary Objectives​
+​1.​ ​Full pytest coverage for every tool and node (not just the ones tested ad hoc in prior​
+​weeks).​
+​2.​ ​docs/architecture.md​​finalized with an accurate diagram,​​and​
+​docs/self_eval.md​​written against the validation checklist.​
+
+--- Page {i+1} ---
+​Secondary Priorities​
+​-​
+​One-command reproducibility: a fresh​​git clone​​+​​pip​​install -r​
+​requirements.txt​​+ one script runs the full pipeline​​on all 8 specs without manual​
+​steps.​
+​2. Task Breakdown​
+​-​
+​Mon (2.5 hrs):​​Consolidate all node-level tests (​test_planner.py​,​​test_coder.py​,​
+​test_tester_node.py​) plus new​​test_refactor_node.py​​and​
+​test_sandbox_runner.py​​(edge cases: timeout, import​​error, malformed code).​
+​Target: 90%+ of​​agent/​​and​​tools/​​covered.​
+​-​
+​Tue (2 hrs):​​Run​​pytest --cov=agent --cov=tools​​and​​address any glaring gaps​
+​(e.g., an untested error branch in the sandbox runner).​
+​-​
+​Wed (2 hrs):​​Write​​run_pipeline.py​: a single CLI entrypoint​​(​python​
+​run_pipeline.py --spec-dir specs/​) that runs the whole​​pipeline on all specs​
+​and prints a summary table, replacing the ad hoc scripts used in Weeks 3–6.​
+​-​
+​Thu (2 hrs):​​Test one-command reproducibility for​​real: delete your local​​venv​, re-clone​
+​the repo into a fresh directory, follow only your own​​README.md​, and confirm it works​
+​with zero undocumented manual steps. Fix the README for anything you had to figure​
+​out.​
+​-​
+​Fri (2 hrs):​​Finalize​​docs/architecture.md​: accurate​​Mermaid/ASCII diagram​
+​matching the actual final graph (including refactor and retry edges), plus a short​
+​paragraph per node explaining its responsibility.​
+​-​
+​Sat (2.5 hrs):​​Write​​docs/self_eval.md​: go through​​the validation checklist​
+​(autonomy, multi-step reasoning, conditional tool use, self-correction evidence, loop cap,​
+​error handling, explainability, agentic-vs-automation delta) and link each item to a​
+​specific file/trace/commit as proof, exactly as planned in the original project scope​
+​document.​
+​-​
+​Sun (1.5 hrs):​​Buffer + commit:​​week7: full test coverage,​​docs​
+​finalized, one-command reproducibility confirmed​.​
+​3. Required Resources​
+​-​
+​Archived traces from Week 6 (dependency, for self-eval evidence links).​
+​-​
+​A second machine or at least a genuinely fresh virtualenv for the reproducibility test —​
+​do not skip this by testing in your existing dirty environment.​
+​4. Potential Obstacles & Mitigations​
+​-​
+​Obstacle:​​Reproducibility test reveals missing steps​​(e.g., an env var you set manually​
+​months ago and forgot).​​Mitigation:​​This is the exact​​purpose of Thursday's test —​
+​budget time to fix​​README.md​, don't treat a failed​​reproducibility test as a setback.​
+
+--- Page {i+1} ---
+​-​
+​Obstacle:​​Coverage tooling reveals large untested surfaces late, tempting a rushed​
+​test-writing sprint.​​Mitigation:​​Prioritize coverage​​for anything that touches code​
+​execution (sandbox) and state transitions (graph edges) first — these are higher-risk​
+​than prompt-template files.​
+​5. Checkpoint Questions​
+​-​
+​Does​​pytest --cov​​show meaningful coverage (90%+)​​on​​agent/​​and​​tools/​?​
+​-​
+​Did the fresh-clone reproducibility test pass using only the README, with no​
+​memory-dependent manual steps?​
+​-​
+​Does every item in the validation checklist have a specific, linked piece of evidence in​
+​self_eval.md​?​
+​Go / No-Go Criteria​
+​-​
+​GO​​if: coverage target met AND fresh-clone test passed​​AND self-eval doc is complete​
+​with evidence links.​
+​-​
+​NO-GO​​if: the fresh-clone test fails — this is a hard​​blocker for course submission (an​
+​evaluator will hit the same failure), fix before Week 8.​
+​-​
+​Dependency flag:​​Week 8's demo script directly walks​​through​​self_eval.md​​and​
+​traces/final_run/​​— both must be finalized before​​Week 8 begins.​
+​Week 8 — Final Polish, Presentation, Submission​
+​1. Primary Objectives​
+​1.​ ​A rehearsed, timed demo (target 6–8 minutes) walking through one full trace live: plan →​
+​code → test failure → retry → pass → refactor.​
+​2.​ ​Final repository state tagged as a release (e.g.,​​v1.0-submission​) and submitted.​
+​Secondary Priorities​
+​-​
+​Optional: a short (2–3 min) recorded screen-capture backup of the live demo in case of​
+​live-demo technical issues on presentation day.​
+​2. Task Breakdown​
+​-​
+​Mon (2 hrs):​​Write a demo script (literally, word-for-word​​talking points) in​
+​docs/demo_script.md​: which spec you'll show live,​​what you'll point to in the​
+​LangSmith trace at each step, and which line of​​self_eval.md​​each moment proves.​
+
+--- Page {i+1} ---
+​-​
+​Tue (2 hrs):​​Rehearse the live demo twice, timing yourself. Cut anything over 8 minutes.​
+​Confirm the LangSmith trace UI is fast/reliable enough to demo live; if not, switch to your​
+​local​​traces/final_run/​​JSON files as the demo source​​instead.​
+​-​
+​Wed (1.5 hrs):​​Record the backup screen-capture version​​of the same demo.​
+​-​
+​Thu (1.5 hrs):​​Final README pass: add a "Results Summary"​​section at the top (X/8​
+​specs passed, self-correction demonstrated on spec Y, refactor discard demonstrated on​
+​spec Z) so an evaluator gets the headline result in the first 30 seconds of opening the​
+​repo.​
+​-​
+​Fri (1 hr):​​Tag the release:​​git tag v1.0-submission​​&& git push --tags​. Do​
+​a final fresh-clone smoke test (5 min) to catch any last-minute breakage.​
+​-​
+​Sat–Sun:​​Buffer only — no new features, no new specs,​​no scope additions. If ahead of​
+​schedule, use this time to rehearse the demo once more or improve​​self_eval.md​
+​wording, not to add functionality.​
+​3. Required Resources​
+​-​
+​Everything from Weeks 1–7 (final integration week, no new tools).​
+​-​
+​Whatever platform/format the course requires for submission (check Credo's specific​
+​submission instructions here — this is the one external dependency in the whole plan).​
+​4. Potential Obstacles & Mitigations​
+​-​
+​Obstacle:​​Live demo fails during presentation (API​​down, network issue).​​Mitigation:​
+​This is exactly why Wednesday's recorded backup exists — have it ready to play with​
+​zero friction.​
+​-​
+​Obstacle:​​Last-minute urge to "fix" a failing spec​​discovered while rehearsing.​
+​Mitigation:​​A documented, understood failure is acceptable​​and even useful evidence​
+​(shows honest self-evaluation); an untested last-minute change the night before​
+​submission is a much bigger risk than one imperfect spec.​
+​5. Checkpoint Questions​
+​-​
+​Can I deliver the demo in under 8 minutes without notes, hitting every point in​
+​demo_script.md​?​
+​-​
+​Does the README's Results Summary tell the whole story in the first screen, with no​
+​scrolling?​
+​-​
+​Is the tagged release a clean, fresh-clone-able snapshot?​
+​Go / No-Go Criteria​
+​-​
+​GO (submit):​​demo rehearsed twice under time AND backup​​recording exists AND​
+​fresh-clone smoke test passes on the tagged release.​
+
+--- Page {i+1} ---
+​-​
+​NO-GO:​​if the fresh-clone smoke test fails on the tagged release — this must be fixed​
+​before submission regardless of how late it is; a broken submission is worse than a late​
+​one.​
+​Repo Structure (reference — set up in Week 1, stable throughout)​
+​/agent​
+​graph.py​
+​state.py​
+​nodes/ (planner.py, coder.py, tester.py, refactor.py)​
+​prompts/ (planner_prompt.py, coder_prompt.py, refactor_prompt.py)​
+​/tools​
+​file_writer.py​
+​sandbox_runner.py​
+​/specs​
+​spec_01.json ... spec_08.json​
+​tests/ (test_spec_01.py ... test_spec_08.py)​
+​/generated​
+​(all attempts, all specs — never manually pruned)​
+​/traces​
+​week2_plans/ week4_test_results/ week5_summary.csv​
+​week6_failure_analysis.md final_run/​
+​/tests​
+​test_planner.py test_coder.py test_tester_node.py​
+
+--- Page {i+1} ---
+​test_refactor_node.py test_sandbox_runner.py​
+​/docs​
+​architecture.md self_eval.md demo_script.md​
+​run_pipeline.py​
+​README.md​
+​requirements.txt​
+​Cross-Week Dependency Summary​
+​-​
+​Week 2 blocked by: Week 1 finalized state schema + 8 curated specs.​
+​-​
+​Week 3 blocked by: Week 2 finalized​​PlanOutput​​schema.​
+​-​
+​Week 4 blocked by: Week 3 stable file-naming convention.​
+​-​
+​Week 5 blocked by: Weeks 2–4 all independently passing their own Go/No-Go.​
+​-​
+​Week 6 blocked by: Week 5 loop reaching at least 5/8 passing specs.​
+​-​
+​Week 7 blocked by: Week 6 archived​​traces/final_run/​.​
+​-​
+​Week 8 blocked by: Week 7 completed​​self_eval.md​​and​​passed reproducibility test.​
+​No week should start with an open No-Go from the prior week — remediation time is built into​
+​each week's task list, but if a No-Go persists past its remediation window, the correct move is to​
+​cut a spec from the evaluation set (going from 8 to 6, for example) rather than compress a later​
+​week's testing/documentation time.​

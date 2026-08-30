@@ -12,41 +12,27 @@ def merge(intervals: List[List[int]]) -> List[List[int]]:
     Returns
     -------
     List[List[int]]
-        A list of merged, non-overlapping intervals sorted by start time.
+        A list of merged, non-overlapping intervals covering all input intervals.
 
     Notes
     -----
-    - Intervals that touch at a point (e.g., [1, 4] and [4, 5]) are merged.
-    - Zero-length intervals (start == end) are treated like any other interval.
-    - The function performs input validation and returns an empty list if the
-      input is empty or contains invalid intervals.
+    The function first sorts the intervals by their start times and then
+    iteratively merges overlapping intervals. The overall time complexity is
+    O(n log n) due to the sorting step, and the space complexity is O(n)
+    for the output list.
     """
-    # Input validation
     if not intervals:
         return []
 
-    # Ensure each interval is a list of two integers with start <= end
-    for idx, iv in enumerate(intervals):
-        if (
-            not isinstance(iv, list)
-            or len(iv) != 2
-            or not isinstance(iv[0], int)
-            or not isinstance(iv[1], int)
-            or iv[0] > iv[1]
-        ):
-            raise ValueError(f"Invalid interval at index {idx}: {iv}")
+    # Sort intervals by start time
+    intervals.sort(key=lambda x: x[0])
 
-    # Sort intervals by start value
-    sorted_intervals = sorted(intervals, key=lambda x: x[0])
-
-    merged: List[List[int]] = []
-
-    for current in sorted_intervals:
-        if not merged or current[0] > merged[-1][1]:
-            # No overlap; add the interval
-            merged.append(current.copy())
+    merged: List[List[int]] = [intervals[0]]
+    for current in intervals[1:]:
+        last = merged[-1]
+        if current[0] <= last[1]:  # Overlap
+            last[1] = max(last[1], current[1])
         else:
-            # Overlap; merge with the last interval
-            merged[-1][1] = max(merged[-1][1], current[1])
+            merged.append(current)
 
     return merged

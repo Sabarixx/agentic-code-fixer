@@ -104,14 +104,66 @@ The evaluation benchmark contains **8 curated function specifications** spanning
 
 | ID | Problem Title | Algorithmic Category | Reference Tests | Status |
 | :---: | :--- | :--- | :---: | :---: |
-| `spec_01` | **Two Sum** | Hash Map / Two Pointers | 5 / 5 Passed | `passed` |
-| `spec_02` | **Reverse Linked List** | Pointer Manipulation | 5 / 5 Passed | `passed` |
-| `spec_03` | **Valid Parentheses** | Stack | 5 / 5 Passed | `passed` |
-| `spec_04` | **Merge Intervals** | Sorting / Interval Array | 5 / 5 Passed | `passed` |
-| `spec_05` | **Group Anagrams** | Hash Table / String Categorization | 5 / 5 Passed | `passed` |
-| `spec_06` | **Search in Rotated Sorted Array** | Modified Binary Search | 5 / 5 Passed | `passed` |
-| `spec_07` | **LRU Cache** | Doubly Linked List + Hash Map | 5 / 5 Passed | `passed` |
-| `spec_08` | **Topological Sort** | Graph DAG / Kahn's Algorithm | 5 / 5 Passed | `passed` |
+| `spec_01` | **Two Sum** | Hash Map / Two Pointers | 5 / 5 Passed | `refactored` |
+| `spec_02` | **Reverse Linked List** | Pointer Manipulation | 5 / 5 Passed | `refactored` |
+| `spec_03` | **Valid Parentheses** | Stack | 5 / 5 Passed | `refactored` |
+| `spec_04` | **Merge Intervals** | Sorting / Interval Array | 5 / 5 Passed | `refactored` |
+| `spec_05` | **Group Anagrams** | Hash Table / String Categorization | 5 / 5 Passed | `refactored` |
+| `spec_06` | **Search in Rotated Sorted Array** | Modified Binary Search | 5 / 5 Passed | `refactored` |
+| `spec_07` | **LRU Cache** | Doubly Linked List + Hash Map | 5 / 5 Passed | `refactored` |
+| `spec_08` | **Topological Sort** | Graph DAG / Kahn's Algorithm | 5 / 5 Passed | `refactored` |
+
+---
+
+## 📈 Final Results
+
+> Full evaluation run completed across all 8 specs in Week 6. Archive: [`traces/final_run/`](traces/final_run/) · Summary: [`traces/week6_summary.md`](traces/week6_summary.md)
+
+| Metric | Value |
+| :--- | :--- |
+| Specs Evaluated | **8 / 8** |
+| Tests Passing | **40 / 40** |
+| Refactor Passes Kept | **8 / 8** |
+| Retry Loop Organically Triggered | 0 (all passed first attempt) |
+| Average Iterations per Spec | 2 |
+
+---
+
+## ⚡ Demo
+
+Run the full 4-node pipeline on any spec in one command:
+
+```powershell
+# Run demo on Two Sum (default)
+.\venv\Scripts\python.exe scratch/run_demo.py spec_01
+
+# Run demo on LRU Cache
+.\venv\Scripts\python.exe scratch/run_demo.py spec_07
+```
+
+The demo prints each stage (`[PLAN]`, `[CODE]`, `[TEST]`, `[REFACTOR]`) as it executes, and exits with code `0` on success, `1` on failure.
+
+### Pre-Demo Environment Check
+
+```powershell
+# Verify all 52 environment checks before a live demo
+.\venv\Scripts\python.exe scratch/verify_fresh_clone.py
+```
+
+---
+
+## 🗓️ Week-by-Week Progress
+
+| Week | Focus | Status |
+| :---: | :--- | :---: |
+| **Week 1** | Environment setup, LangGraph skeleton (`planner→coder→tester`), architecture contract locked | ✅ Done |
+| **Week 2** | `planner_node` — structured `PlanOutput` Pydantic model, 8 plans generated & audited | ✅ Done |
+| **Week 3** | `coder_node` — regex extraction, AST validation, `tools/file_writer.py`, 8 implementations generated | ✅ Done |
+| **Week 4** | `tester_node` — sandboxed `pytest` subprocess, `TestResult` schema, 8/8 specs passing | ✅ Done |
+| **Week 5** | Conditional retry loop — `route_after_tester`, failure injection into retry prompt, 8/8 refactored | ✅ Done |
+| **Week 6** | `refactor_node` — discard-on-regression safety net, exponential backoff, full 8-spec evaluation run | ✅ Done |
+| **Week 7** | Self-evaluation doc (`docs/self_eval.md`), demo script, fresh-clone verifier, README polish | ✅ Done |
+| **Week 8** | Final submission preparation | 🔜 Next |
 
 ---
 

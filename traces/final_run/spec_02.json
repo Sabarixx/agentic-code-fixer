@@ -1,0 +1,33 @@
+{
+  "spec_id": "spec_02",
+  "title": "Reverse Linked List",
+  "final_status": "refactored",
+  "iterations_taken": 2,
+  "has_refactored": false,
+  "refactor_discarded": false,
+  "test_results": {
+    "passed": 5,
+    "failed": 0,
+    "total": 5,
+    "all_passed": true,
+    "failure_details": [],
+    "stdout": ".....                                                                    [100%]\n5 passed in 0.11s\n",
+    "stderr": "",
+    "timed_out": false,
+    "error": ""
+  },
+  "plan": {
+    "approach": "Iteratively traverse the list while reversing the next pointers. Maintain three pointers: prev (initially None), curr (starting at head), and next_node (curr.next). In each iteration, store curr.next in next_node, set curr.next to prev, then move prev to curr and curr to next_node. Continue until curr becomes None. At the end, prev points to the new head of the reversed list. Return prev. This runs in a single pass and uses only constant extra space.",
+    "edge_cases": [
+      "Empty list (head is None) should return None",
+      "Single-node list should return the same node",
+      "List with negative values should be handled correctly",
+      "Maximum allowed nodes (5000) to ensure no recursion depth issues",
+      "List with duplicate values",
+      "List where all nodes have the same value",
+      "List with alternating positive and negative values"
+    ],
+    "complexity_target": "O(N) Time, O(1) Space"
+  },
+  "final_code": "from __future__ import annotations\nfrom typing import Optional\n\nclass ListNode:\n    \"\"\"Node of a singly linked list.\"\"\"\n    def __init__(self, val: int = 0, next: Optional['ListNode'] = None):\n        self.val = val\n        self.next = next\n\ndef reverse_list(head: Optional[ListNode]) -> Optional[ListNode]:\n    \"\"\"\n    Reverse a singly linked list in place.\n\n    Parameters\n    ----------\n    head : Optional[ListNode]\n        The head of the list to reverse.\n\n    Returns\n    -------\n    Optional[ListNode]\n        The new head of the reversed list, or None if the input list was empty.\n    \"\"\"\n    prev_node: Optional[ListNode] = None\n    current_node: Optional[ListNode] = head\n\n    while current_node is not None:\n        next_node: Optional[ListNode] = current_node.next\n        current_node.next = prev_node\n        prev_node = current_node\n        current_node = next_node\n\n    return prev_node"
+}

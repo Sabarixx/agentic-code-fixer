@@ -1,0 +1,32 @@
+{
+  "spec_id": "spec_08",
+  "title": "Topological Sort",
+  "final_status": "refactored",
+  "iterations_taken": 2,
+  "has_refactored": false,
+  "refactor_discarded": false,
+  "test_results": {
+    "passed": 5,
+    "failed": 0,
+    "total": 5,
+    "all_passed": true,
+    "failure_details": [],
+    "stdout": ".....                                                                    [100%]\n5 passed in 0.09s\n",
+    "stderr": "",
+    "timed_out": false,
+    "error": ""
+  },
+  "plan": {
+    "approach": "1. Build adjacency list and indegree array for all nodes.\n2. Initialize a queue (or stack) with all nodes having indegree 0.\n3. While the queue is not empty:\n   a. Pop a node u.\n   b. Append u to the result list.\n   c. For each neighbor v of u, decrement indegree[v].\n   d. If indegree[v] becomes 0, push v into the queue.\n4. After processing, if the result list length equals num_nodes, return it as a valid topological order.\n   Otherwise a cycle exists; return None.\n\nThis is Kahn\u2019s algorithm, which runs in linear time and guarantees a topological ordering if one exists. It also naturally handles disconnected components because all nodes start in the queue if they have no incoming edges.\n\nEdge cases are handled by the algorithm: nodes with no incoming or outgoing edges are simply added to the queue and processed; if the graph has a cycle, the queue will eventually become empty before all nodes are processed, triggering the None return.\n\nThe algorithm uses O(V+E) time and O(V+E) space for the adjacency list, indegree array, queue, and result list.",
+    "edge_cases": [
+      "Graph with no edges (all nodes independent).",
+      "Graph with a single node and no edges.",
+      "Graph containing a cycle (directed cycle of any length).",
+      "Graph with multiple disconnected components (each component may be acyclic).",
+      "Graph with self-loop edges (u -> u) \u2013 treated as a cycle and should return None.",
+      "Edges that reference nodes outside the 0..num_nodes-1 range \u2013 according to constraints this should not occur, but the implementation can guard against it by validating indices."
+    ],
+    "complexity_target": "O(V + E) Time, O(V + E) Space"
+  },
+  "final_code": "from collections import deque\nfrom typing import List, Optional\n\ndef topological_sort(num_nodes: int, edges: List[List[int]]) -> Optional[List[int]]:\n    \"\"\"\n    Return a topological ordering of the nodes 0..num_nodes-1 if one exists,\n    otherwise return ``None``.\n    \"\"\"\n    # Build adjacency list and indegree counts\n    adjacency: List[List[int]] = [[] for _ in range(num_nodes)]\n    indegree: List[int] = [0] * num_nodes\n\n    for u, v in edges:\n        if not (0 <= u < num_nodes and 0 <= v < num_nodes):\n            raise ValueError(f\"Edge ({u}, {v}) contains out\u2011of\u2011range node.\")\n        adjacency[u].append(v)\n        indegree[v] += 1\n\n    # Queue of nodes with no incoming edges\n    zero_indegree = deque(i for i, d in enumerate(indegree) if d == 0)\n    order: List[int] = []\n\n    while zero_indegree:\n        node = zero_indegree.popleft()\n        order.append(node)\n        for neighbour in adjacency[node]:\n            indegree[neighbour] -= 1\n            if indegree[neighbour] == 0:\n                zero_indegree.append(neighbour)\n\n    # If all nodes were processed, a valid ordering exists\n    return order if len(order) == num_nodes else None"
+}

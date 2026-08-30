@@ -1,0 +1,27 @@
+{
+  "spec_id": "spec_07",
+  "title": "LRU Cache",
+  "final_status": "refactored",
+  "iterations_taken": 2,
+  "has_refactored": false,
+  "refactor_discarded": false,
+  "test_results": {
+    "passed": 5,
+    "failed": 0,
+    "total": 5,
+    "all_passed": true,
+    "failure_details": [],
+    "stdout": ".....                                                                    [100%]\n5 passed in 0.08s\n",
+    "stderr": "",
+    "timed_out": false,
+    "error": ""
+  },
+  "plan": {
+    "approach": "Use a hash map (dictionary) to map keys to nodes in a doubly linked list. The linked list maintains usage order: head is most recently used, tail is least recently used. For get(key): if key not in map, return -1. Else, move the node to head and return its value. For put(key,value): if key exists, update value and move node to head. If key does not exist, create new node. If capacity exceeded after insertion, remove tail node (least recently used) and delete its key from map. All operations (hash lookup, node removal, node insertion) are O(1). The linked list nodes store key, value, prev, next. The map stores key -> node. Complexity: O(1) time per operation, O(capacity) space. Edge cases: capacity 0 (no storage, all gets return -1, puts do nothing). get on non-existent key. put on existing key updates value and usage. Eviction when capacity reached. Duplicate put calls. Large number of operations. Ensure no memory leaks by properly unlinking nodes. Ensure tail pointer updates correctly when list becomes empty.",
+    "edge_cases": [
+      "capacity == 0 (should handle gracefully), get on key not present, put on existing key updates value and moves to head, put when cache is full evicts LRU, repeated puts for same key, sequence of gets and puts that alternate usage order, large number of operations up to 2*10^5, keys or values at boundary of constraints, negative or zero values (though constraints say non-negative)."
+    ],
+    "complexity_target": "O(1) Time, O(C) Space (where C is capacity)."
+  },
+  "final_code": "from __future__ import annotations\n\nfrom typing import Dict, Optional\n\n\nclass LRUCache:\n    \"\"\"Least\u2011Recently\u2011Used cache with O(1) `get` and `put` operations.\n\n    Parameters\n    ----------\n    capacity : int\n        Maximum number of key/value pairs the cache can hold.\n    \"\"\"\n\n    class _Node:\n        \"\"\"Doubly\u2011linked list node used internally by :class:`LRUCache`.\"\"\"\n        __slots__ = (\"key\", \"value\", \"prev\", \"next\")\n\n        def __init__(self, key: int = 0, value: int = 0) -> None:\n            self.key: int = key\n            self.value: int = value\n            self.prev: Optional[\"LRUCache._Node\"] = None\n            self.next: Optional[\"LRUCache._Node\"] = None\n\n    def __init__(self, capacity: int) -> None:\n        self._capacity: int = capacity\n        self._cache: Dict[int, LRUCache._Node] = {}\n\n        # Dummy head and tail nodes simplify edge\u2011case handling.\n        self._head: LRUCache._Node = self._Node()\n        self._tail: LRUCache._Node = self._Node()\n        self._head.next = self._tail\n        self._tail.prev = self._head\n\n    # --------------------------------------------------------------------- #\n    # Internal helpers\n    # --------------------------------------------------------------------- #\n    def _remove_node(self, node: _Node) -> None:\n        \"\"\"Detach *node* from the doubly\u2011linked list.\"\"\"\n        prev_node, next_node = node.prev, node.next\n        assert prev_node is not None and next_node is not None  # for type checkers\n        prev_node.next = next_node\n        next_node.prev = prev_node\n\n    def _add_node_to_front(self, node: _Node) -> None:\n        \"\"\"Insert *node* immediately after the dummy head (most recent).\"\"\"\n        node.next = self._head.next\n        node.prev = self._head\n        self._head.next.prev = node\n        self._head.next = node\n\n    # --------------------------------------------------------------------- #\n    # Public API\n    # --------------------------------------------------------------------- #\n    def get(self, key: int) -> int:\n        \"\"\"Return the value for *key* if present, otherwise ``-1``.\n\n        The accessed key is marked as most recently used.\n        \"\"\"\n        node = self._cache.get(key)\n        if node is None:\n            return -1\n\n        self._remove_node(node)\n        self._add_node_to_front(node)\n        return node.value\n\n    def put(self, key: int, value: int) -> None:\n        \"\"\"Insert or update the value for *key*.\n\n        If the cache exceeds its capacity, the least recently used item\n        is evicted.\n        \"\"\"\n        if self._capacity == 0:\n            return\n\n        node = self._cache.get(key)\n        if node:\n            node.value = value\n            self._remove_node(node)\n            self._add_node_to_front(node)\n            return\n\n        if len(self._cache) >= self._capacity:\n            # Evict the least recently used node (just before the dummy tail).\n            lru_node = self._tail.prev\n            assert lru_node is not None and lru_node.prev is not None\n            self._remove_node(lru_node)\n            del self._cache[lru_node.key]\n\n        new_node = self._Node(key, value)\n        self._cache[key] = new_node\n        self._add_node_to_front(new_node)"
+}

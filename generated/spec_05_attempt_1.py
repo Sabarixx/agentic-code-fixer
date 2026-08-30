@@ -1,5 +1,4 @@
-from collections import defaultdict
-from typing import List
+from typing import List, Dict, Tuple
 
 def group_anagrams(strs: List[str]) -> List[List[str]]:
     """
@@ -13,13 +12,21 @@ def group_anagrams(strs: List[str]) -> List[List[str]]:
     Returns
     -------
     List[List[str]]
-        A list of groups, each containing strings that are anagrams.
-        The order of groups and the order within each group are not specified.
+        List of groups, each group containing strings that are anagrams.
+        Order of groups and order within groups is not specified.
     """
-    anagram_map = defaultdict(list)
+    if not strs:
+        return []
+
+    # Map from character count tuple to list of strings
+    groups: Dict[Tuple[int, ...], List[str]] = {}
 
     for s in strs:
-        key = ''.join(sorted(s))
-        anagram_map[key].append(s)
+        # Count occurrences of each letter
+        count = [0] * 26
+        for ch in s:
+            count[ord(ch) - 97] += 1
+        key = tuple(count)
+        groups.setdefault(key, []).append(s)
 
-    return list(anagram_map.values())
+    return list(groups.values())

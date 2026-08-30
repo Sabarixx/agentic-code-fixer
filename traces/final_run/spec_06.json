@@ -1,0 +1,37 @@
+{
+  "spec_id": "spec_06",
+  "title": "Search in Rotated Sorted Array",
+  "final_status": "refactored",
+  "iterations_taken": 2,
+  "has_refactored": false,
+  "refactor_discarded": false,
+  "test_results": {
+    "passed": 5,
+    "failed": 0,
+    "total": 5,
+    "all_passed": true,
+    "failure_details": [],
+    "stdout": ".....                                                                    [100%]\n5 passed in 0.07s\n",
+    "stderr": "",
+    "timed_out": false,
+    "error": ""
+  },
+  "plan": {
+    "approach": "We perform a modified binary search that works on a rotated sorted array. At each iteration we have a low and high index. We compute mid. If nums[mid]==target we return mid. Otherwise we determine which side of the array is properly sorted: if nums[low] <= nums[mid] then the left half [low,mid] is sorted; otherwise the right half [mid,high] is sorted. Once we know which half is sorted, we check if the target lies within that sorted half by comparing it to the boundary values. If it does, we narrow the search to that half; otherwise we search the other half. This guarantees O(log n) time and O(1) space. Edge cases such as a single element array, no rotation, rotation at the last element, target at the boundaries, and target not present are naturally handled by the logic.\n\nImplementation details:\n1. Initialize low=0, high=len(nums)-1.\n2. While low <= high:\n   - mid = (low+high)//2.\n   - If nums[mid]==target: return mid.\n   - If nums[low] <= nums[mid]: left half sorted.\n        * If nums[low] <= target < nums[mid]: high = mid-1.\n        * Else: low = mid+1.\n   - Else: right half sorted.\n        * If nums[mid] < target <= nums[high]: low = mid+1.\n        * Else: high = mid-1.\n3. Return -1 if loop ends.\n\nThis algorithm handles all edge cases and runs in O(log n) time with O(1) auxiliary space.\n",
+    "edge_cases": [
+      "Empty array (though constraints say len>=1).",
+      "Array of length 1 where target equals or differs from the single element.",
+      "Array not rotated (pivot at index 0).",
+      "Array rotated at the last element (pivot at index n-1).",
+      "Target is the first element of the array.",
+      "Target is the last element of the array.",
+      "Target is the pivot element (the smallest element).",
+      "Target not present in the array.",
+      "Array contains negative numbers and target is negative.",
+      "Target is outside the range of all elements.",
+      "Array with maximum allowed length (5000)."
+    ],
+    "complexity_target": "O(n log n) Time, O(1) Space"
+  },
+  "final_code": "from typing import List\n\ndef search(nums: List[int], target: int) -> int:\n    \"\"\"\n    Return the index of *target* in a rotated sorted array of distinct integers.\n    If *target* is not present, return -1.\n    \"\"\"\n    if not nums:\n        return -1\n\n    left, right = 0, len(nums) - 1\n    while left <= right:\n        mid = (left + right) // 2\n        mid_val = nums[mid]\n        if mid_val == target:\n            return mid\n\n        # Determine which half is sorted\n        if nums[left] <= mid_val:  # left half is sorted\n            if nums[left] <= target < mid_val:\n                right = mid - 1\n            else:\n                left = mid + 1\n        else:  # right half is sorted\n            if mid_val < target <= nums[right]:\n                left = mid + 1\n            else:\n                right = mid - 1\n\n    return -1"
+}

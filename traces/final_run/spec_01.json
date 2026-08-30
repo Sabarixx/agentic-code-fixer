@@ -1,0 +1,32 @@
+{
+  "spec_id": "spec_01",
+  "title": "Two Sum",
+  "final_status": "refactored",
+  "iterations_taken": 2,
+  "has_refactored": false,
+  "refactor_discarded": false,
+  "test_results": {
+    "passed": 5,
+    "failed": 0,
+    "total": 5,
+    "all_passed": true,
+    "failure_details": [],
+    "stdout": ".....                                                                    [100%]\n5 passed in 0.04s\n",
+    "stderr": "",
+    "timed_out": false,
+    "error": ""
+  },
+  "plan": {
+    "approach": "1. Create an empty hash map (dictionary) to store numbers as keys and their indices as values.\n2. Iterate over the list `nums` with index `i` and value `num`.\n   a. Compute the complement `target - num`.\n   b. Check if the complement exists in the hash map.\n      - If it does, return a list containing the stored index of the complement and the current index `i`.\n      - If it does not, store the current number and its index in the hash map.\n3. Since the problem guarantees exactly one solution, the function will always return inside the loop.\n\nThis approach ensures each element is processed once, achieving linear time complexity while using a hash map for constant\u2011time lookups.\n\nEdge cases to consider:\n- The list contains duplicate values that could form the target pair.\n- Negative numbers and large magnitude values.\n- The target is the sum of two identical numbers (e.g., nums=[3,3], target=6).\n- The pair indices can be returned in any order; the algorithm returns the complement index first.\n- Input list length is at least 2, so no need to handle empty or single\u2011element lists.\n- The function should not modify the input list.\n\nComplexity target: O(n) Time, O(n) Space.",
+    "edge_cases": [
+      "Duplicate values that form the target pair",
+      "Negative numbers and large magnitude values",
+      "Target equals twice a number (e.g., [3,3], target=6)",
+      "Input list length exactly 2",
+      "Large input size up to 10^4",
+      "Numbers at the extremes of the allowed range"
+    ],
+    "complexity_target": "O(n) Time, O(n) Space"
+  },
+  "final_code": "from typing import List, Dict\n\ndef two_sum(nums: List[int], target: int) -> List[int]:\n    \"\"\"\n    Return the indices of the two distinct numbers in *nums* that sum to *target*.\n\n    The function assumes that exactly one such pair exists and that an element\n    cannot be used twice.  It raises a :class:`ValueError` if no pair is found,\n    which should never happen under the problem constraints.\n    \"\"\"\n    # Maps a number to its index in the list.\n    index_by_value: Dict[int, int] = {}\n\n    for current_index, current_value in enumerate(nums):\n        needed = target - current_value\n        if needed in index_by_value:\n            return [index_by_value[needed], current_index]\n        index_by_value[current_value] = current_index\n\n    # This point is unreachable if the input satisfies the problem guarantees.\n    raise ValueError(\"No two-sum solution found\")"
+}

@@ -1,0 +1,37 @@
+{
+  "spec_id": "spec_04",
+  "title": "Merge Intervals",
+  "final_status": "refactored",
+  "iterations_taken": 2,
+  "has_refactored": false,
+  "refactor_discarded": false,
+  "test_results": {
+    "passed": 5,
+    "failed": 0,
+    "total": 5,
+    "all_passed": true,
+    "failure_details": [],
+    "stdout": ".....                                                                    [100%]\n5 passed in 0.05s\n",
+    "stderr": "",
+    "timed_out": false,
+    "error": ""
+  },
+  "plan": {
+    "approach": "1. **Handle trivial cases**: If the input list has 0 or 1 interval, return it as is.\n2. **Sort intervals**: Sort the list of intervals by their start value (and optionally by end for stability). This ensures that any overlapping or adjacent intervals appear consecutively.\n3. **Iterate and merge**:\n   * Initialize an empty list `merged`.\n   * For each interval `[s, e]` in the sorted list:\n     - If `merged` is empty or `s` is greater than the end of the last interval in `merged`, append `[s, e]` as a new interval.\n     - Otherwise, the current interval overlaps or touches the last merged interval. Update the end of the last merged interval to `max(last_end, e)`.\n4. **Return** the `merged` list.\n\nThis algorithm guarantees that all overlapping or adjacent intervals are combined into the minimal set of non\u2011overlapping intervals.\n\n**Why it works**: Sorting places intervals in order of increasing start. When scanning, any interval that starts before or at the end of the previous merged interval must overlap or touch it, so merging by taking the maximum end preserves the union of all covered points. Non\u2011overlapping intervals will have a start greater than the previous end, so they are added as new entries.\n\n**Implementation notes**:\n- Use Python's built\u2011in `sort()` which is Timsort (O(n log n) worst\u2011case, O(n) best\u2011case).\n- The merge step uses only constant extra space per interval.\n- Adjacent intervals (e.g., `[1,4]` and `[4,5]`) are merged because the condition `s <= last_end` includes equality.\n\n**Complexity**: Sorting dominates the runtime.\n\n**Edge cases**:\n- Intervals that are identical.\n- Intervals with zero length (`start == end`).\n- All intervals overlapping into a single interval.\n- No intervals overlap.\n- Intervals unsorted or in reverse order.\n- Very large input size (up to 10^4) to test performance.\n- Intervals with the same start but different ends.\n- Intervals that are nested within others.\n- Single interval input.\n- Empty input list (though constraints say at least 1, still handle gracefully).\n\n**Complexity target**: O(n log n) Time, O(n) Space.",
+    "edge_cases": [
+      "Empty input list",
+      "Single interval",
+      "Intervals with identical start and end",
+      "Intervals that are identical",
+      "Intervals that are nested",
+      "Intervals that touch at endpoints (e.g., [1,4] and [4,5])",
+      "All intervals overlapping into one",
+      "No intervals overlap",
+      "Intervals unsorted or in reverse order",
+      "Intervals with same start but different ends",
+      "Large input size up to 10^4"
+    ],
+    "complexity_target": "O(n log n) Time, O(n) Space"
+  },
+  "final_code": "from typing import List\n\nInterval = List[int]\n\n\ndef merge(intervals: List[Interval]) -> List[Interval]:\n    \"\"\"\n    Merge all overlapping or adjacent intervals.\n\n    Parameters\n    ----------\n    intervals : List[Interval]\n        A list of intervals represented as [start, end].\n\n    Returns\n    -------\n    List[Interval]\n        A list of merged, non\u2011overlapping intervals covering all points in the input.\n\n    Notes\n    -----\n    * Intervals that touch at endpoints (e.g., [1, 4] and [4, 5]) are merged.\n    * The original input list is not modified.\n    * An empty input returns an empty list.\n    \"\"\"\n    if not intervals:\n        return []\n\n    # Sort by start, then by end for stability.\n    sorted_intervals = sorted(intervals, key=lambda iv: (iv[0], iv[1]))\n\n    merged_intervals: List[Interval] = []\n    for start, end in sorted_intervals:\n        if not merged_intervals or start > merged_intervals[-1][1]:\n            merged_intervals.append([start, end])\n        else:\n            # Extend the last interval if needed.\n            merged_intervals[-1][1] = max(merged_intervals[-1][1], end)\n\n    return merged_intervals"
+}

@@ -1,9 +1,9 @@
 from collections import deque
 from typing import List, Optional
 
-def topological_sort(num_nodes: int, edges: List[List[int]]) -> List[int] | None:
+def topological_sort(num_nodes: int, edges: List[List[int]]) -> Optional[List[int]]:
     """
-    Perform a topological sort on a directed graph.
+    Return a topological ordering of the nodes in a directed graph or None if a cycle exists.
 
     Parameters
     ----------
@@ -14,28 +14,28 @@ def topological_sort(num_nodes: int, edges: List[List[int]]) -> List[int] | None
 
     Returns
     -------
-    List[int] | None
-        A list representing a valid topological order of the nodes if one exists;
-        otherwise, None if the graph contains a cycle.
+    Optional[List[int]]
+        A list containing a valid topological order of all nodes if one exists,
+        otherwise None.
     """
-    # Build adjacency list and indegree array
+    # Build adjacency list and indegree count
     adj = [[] for _ in range(num_nodes)]
     indegree = [0] * num_nodes
     for u, v in edges:
         adj[u].append(v)
         indegree[v] += 1
 
-    # Initialize queue with nodes having indegree 0
-    q = deque([i for i, deg in enumerate(indegree) if deg == 0])
+    # Initialize queue with nodes having zero indegree
+    queue = deque([i for i, deg in enumerate(indegree) if deg == 0])
     order = []
 
-    while q:
-        node = q.popleft()
+    while queue:
+        node = queue.popleft()
         order.append(node)
-        for neigh in adj[node]:
-            indegree[neigh] -= 1
-            if indegree[neigh] == 0:
-                q.append(neigh)
+        for nxt in adj[node]:
+            indegree[nxt] -= 1
+            if indegree[nxt] == 0:
+                queue.append(nxt)
 
-    # If all nodes are processed, return the order; otherwise, a cycle exists
+    # If all nodes are processed, return order; otherwise a cycle exists
     return order if len(order) == num_nodes else None

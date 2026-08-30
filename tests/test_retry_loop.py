@@ -15,10 +15,21 @@ from agent.router import route_after_tester
 from agent.state import MAX_ITERATIONS, initial_state
 
 
-def test_route_passed_returns_end():
+def test_route_passed_routes_to_refactor_first():
+    """Week 6: status=passed with no prior refactor routes to refactor_node."""
     state = initial_state()
     state["status"] = "passed"
     state["iteration_count"] = 1
+    state["has_refactored"] = False
+    assert route_after_tester(state) == "refactor_node"
+
+
+def test_route_passed_after_refactor_returns_end():
+    """Week 6: status=passed with has_refactored=True routes to __end__."""
+    state = initial_state()
+    state["status"] = "passed"
+    state["iteration_count"] = 1
+    state["has_refactored"] = True
     assert route_after_tester(state) == "__end__"
 
 

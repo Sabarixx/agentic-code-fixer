@@ -1,0 +1,33 @@
+{
+  "spec_id": "spec_05",
+  "title": "Group Anagrams",
+  "final_status": "refactored",
+  "iterations_taken": 2,
+  "has_refactored": false,
+  "refactor_discarded": false,
+  "test_results": {
+    "passed": 5,
+    "failed": 0,
+    "total": 5,
+    "all_passed": true,
+    "failure_details": [],
+    "stdout": ".....                                                                    [100%]\n5 passed in 0.08s\n",
+    "stderr": "",
+    "timed_out": false,
+    "error": ""
+  },
+  "plan": {
+    "approach": "1. Initialize an empty dictionary `anagram_map` where keys are the canonical representation of an anagram group and values are lists of original strings.\n2. For each string `s` in the input list `strs`:\n   - Compute its key. Two common choices:\n     * Sort the characters of `s` and use the resulting string as the key. This is simple and works because the alphabet is small and the maximum length is 100.\n     * Alternatively, compute a 26\u2011element tuple of character counts. This gives O(L) key construction but is slightly more code.\n   - Append `s` to `anagram_map[key]` (create the list if the key is new).\n3. After processing all strings, return `list(anagram_map.values())`. The order of groups and the order within each group are not specified, so the dictionary order is acceptable.\n\n**Why this works**: Two strings are anagrams iff they contain the same multiset of characters. By mapping each string to a canonical representation that is identical for anagrams, all anagrams end up in the same bucket.\n\n**Implementation notes**:\n- Use `''.join(sorted(s))` for the key. Sorting a string of length \u2264100 is trivial.\n- The dictionary automatically handles grouping.\n- Finally, convert the dictionary values to a list of lists.\n\n**Complexity**:\n- Time: For each of the `N` strings, sorting takes `O(L log L)` where `L` is the string length (\u2264100). Thus total time is `O(N * L log L)`.\n- Space: The dictionary stores each string once plus the key. Keys are at most `L` characters. So space is `O(N * L)`.\n\n**Edge cases**:\n- Empty input list (though constraints say at least 1). Return an empty list.\n- Strings of length 0: all empty strings are anagrams of each other; they should be grouped together.\n- All strings identical: one group containing all strings.\n- All strings unique: each string forms its own group.\n- Very large `N` (10^4) with maximum length: algorithm still within limits.\n- Strings with repeated characters: sorting handles duplicates correctly.\n- Non\u2011alphabetic characters are not present per constraints, but the algorithm would still work for any characters.\n\n**Potential optimizations**:\n- If performance becomes critical, replace sorting with a 26\u2011count tuple key: `tuple([s.count(chr(c)) for c in range(ord('a'), ord('z')+1)])`. This reduces key construction to `O(L)`.\n- Use `collections.defaultdict(list)` to simplify list creation.\n\n**Testing**:\n- Example given in the prompt.\n- Edge cases listed above.\n- Randomized tests with known anagram groups.\n",
+    "edge_cases": [
+      "Empty input list (return empty list).",
+      "Strings of length 0 (all empty strings grouped together).",
+      "All strings identical (single group).",
+      "All strings unique (each string its own group).",
+      "Maximum length strings (length 100).",
+      "Very large number of strings (N=10^4).",
+      "Strings with repeated characters."
+    ],
+    "complexity_target": "O(N * L log L) Time, O(N * L) Space"
+  },
+  "final_code": "from collections import defaultdict\nfrom typing import List\n\ndef group_anagrams(strs: List[str]) -> List[List[str]]:\n    \"\"\"\n    Group strings that are anagrams of each other.\n\n    Parameters\n    ----------\n    strs : List[str]\n        A list of lowercase English words.\n\n    Returns\n    -------\n    List[List[str]]\n        A list of groups, each containing words that are anagrams.\n        The relative order of groups and of words within a group is unspecified.\n    \"\"\"\n    anagram_groups: defaultdict[str, List[str]] = defaultdict(list)\n\n    for word in strs:\n        # Use a tuple of sorted characters as the hashable key\n        key = tuple(sorted(word))\n        anagram_groups[key].append(word)\n\n    return list(anagram_groups.values())"
+}
