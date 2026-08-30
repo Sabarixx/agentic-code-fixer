@@ -210,3 +210,131 @@ def run_sandboxed_pytest(spec_id: str, attempt_n: int, timeout: int = 10) -> Tes
 
     finally:
         shutil.rmtree(tmp_dir, ignore_errors=True)
+
+
+def run_bandit_security_scan(code: str) -> list[str]:
+    """Run bandit static security analysis on code string. Returns list of warning messages."""
+    warnings: list[str] = []
+
+    # 1. AST-based check for dangerous primitives
+    try:
+        import ast
+        tree = ast.parse(code)
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Call):
+                func_name = ""
+                if isinstance(node.func, ast.Name):
+                    func_name = node.func.id
+                elif isinstance(node.func, ast.Attribute):
+                    func_name = node.func.attr
+                if func_name in ("eval", "exec"):
+                    warnings.append(f"Security Warning: Dynamic code execution via `{func_name}()` on line {node.lineno}")
+                elif func_name in ("system", "popen", "spawn"):
+                    warnings.append(f"Security Warning: Subshell/OS command invocation via `{func_name}()` on line {node.lineno}")
+    except Exception:
+        pass
+
+    # 2. Bandit CLI analysis
+    tmp_file = Path(tempfile.gettempdir()) / f"bandit_scan_{os.getpid()}_{hash(code)}.py"
+    try:
+        tmp_file.write_text(code, encoding="utf-8")
+        proc = subprocess.run(
+            [sys.executable, "-m", "bandit", "-f", "json", "-q", str(tmp_file)],
+            capture_output=True,
+            text=True,
+            timeout=5,
+        )
+        if proc.stdout.strip():
+            data = json.loads(proc.stdout)
+            for item in data.get("results", []):
+                severity = item.get("issue_severity", "LOW")
+                text = item.get("issue_text", "")
+                test_id = item.get("test_id", "")
+                line = item.get("line_number", "")
+                warnings.append(f"[{severity}] {test_id}: {text} (line {line})")
+    except Exception:
+        pass
+    finally:
+        if tmp_file.exists():
+            tmp_file.unlink(missing_ok=True)
+
+    return warnings
+
+
+def run_custom_sandboxed_pytest(code: str, test_code: str, timeout: int = 10) -> TestResult:
+    """
+    Execute user candidate code against a pytest test suite in a secure temp directory.
+    """
+    tmp_dir = Path(tempfile.mkdtemp(prefix="custom_sandbox_"))
+    try:
+        # Write candidate code
+        candidate_file = tmp_dir / "candidate_code.py"
+        candidate_file.write_text(code, encoding="utf-8")
+
+        # Adapt test code: ensure candidate_code is imported if not already
+        adapted_test = test_code.strip()
+        if "from candidate_code" not in adapted_test and "import candidate_code" not in adapted_test:
+            adapted_test = "from candidate_code import *\n\n" + adapted_test
+
+        test_file = tmp_dir / "test_candidate.py"
+        test_file.write_text(adapted_test, encoding="utf-8")
+
+        minimal_env = {
+            "PATH": os.environ.get("PATH", ""),
+            "SYSTEMROOT": os.environ.get("SYSTEMROOT", ""),
+            "TEMP": os.environ.get("TEMP", ""),
+            "TMP": os.environ.get("TMP", ""),
+            "PYTHONPATH": str(tmp_dir),
+        }
+
+        python_exe = sys.executable
+
+        try:
+            proc = subprocess.run(
+                [
+                    python_exe, "-m", "pytest",
+                    "test_candidate.py",
+                    "--tb=short",
+                    "-q",
+                    "--no-header",
+                ],
+                cwd=str(tmp_dir),
+                env=minimal_env,
+                capture_output=True,
+                text=True,
+                timeout=timeout,
+            )
+        except subprocess.TimeoutExpired:
+            return TestResult(
+                timed_out=True,
+                error=f"Execution timed out after {timeout}s",
+                failure_details=[f"TimeoutExpired: execution exceeded {timeout} seconds"],
+            )
+
+        stdout = proc.stdout or ""
+        stderr = proc.stderr or ""
+
+        passed, failed, total, failure_details = _parse_pytest_output(stdout, stderr)
+
+        if proc.returncode not in (0, 1) and total == 0:
+            combined = (stdout + "\n" + stderr).strip()
+            return TestResult(
+                error=f"pytest exited with code {proc.returncode}",
+                failure_details=[combined[:2000]],
+                stdout=stdout,
+                stderr=stderr,
+            )
+
+        return TestResult(
+            passed=passed,
+            failed=failed,
+            total=total,
+            all_passed=(failed == 0 and total > 0),
+            failure_details=failure_details,
+            stdout=stdout,
+            stderr=stderr,
+        )
+
+    finally:
+        shutil.rmtree(tmp_dir, ignore_errors=True)
+

@@ -12,45 +12,11 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 import streamlit as st
-from ui.pipeline_bridge import load_archived_traces, run_single_spec
-
-# Import run_custom_fix from ui.pipeline_bridge if available, otherwise define fallback signature
-try:
-    from ui.pipeline_bridge import run_custom_fix
-except ImportError:
-    def run_custom_fix(code: str, expected_behavior: str = "", error_message: str = "", user_tests: str = ""):
-        """Fallback generator signature if pipeline_bridge hasn't implemented run_custom_fix yet."""
-        yield {
-            "stage": "diagnosing",
-            "bug_category": "Logic / Syntax Error",
-            "root_cause": "Sample diagnostic root cause analysis placeholder.",
-            "security_flags": [],
-            "syntax_errors": [],
-        }
-        yield {
-            "stage": "generating_tests",
-            "generated_tests": "# Auto-generated pytest suite\ndef test_custom_code():\n    assert True\n",
-            "user_tests": user_tests,
-        }
-        yield {
-            "stage": "fixing",
-            "corrected_code": code,
-        }
-        yield {
-            "stage": "testing",
-            "test_results": {
-                "passed": 1,
-                "failed": 0,
-                "total": 1,
-                "all_passed": True,
-                "stdout": "1 passed in 0.01s",
-            },
-        }
-        yield {
-            "stage": "done",
-            "corrected_code": code,
-            "changelog": ["Identified issue and generated corrected implementation."],
-        }
+from ui.pipeline_bridge import (
+    load_archived_traces,
+    run_custom_fix,
+    run_single_spec,
+)
 
 # Page configuration
 st.set_page_config(
@@ -480,6 +446,26 @@ with tab_fix:
             if final_fix_payload:
                 st.divider()
                 st.subheader("🎉 Final Summary")
+
+                final_status = final_fix_payload.get("status", "unknown")
+                iterations_taken = final_fix_payload.get("iterations_taken", 1)
+                test_results = final_fix_payload.get("test_results", {})
+                all_passed = test_results.get("all_passed", False) or (
+                    test_results.get("total", 0) > 0 and test_results.get("passed", 0) == test_results.get("total", 0)
+                )
+
+                if all_passed:
+                    st.success("🎉 **Status: VERIFIED (All tests passed)**")
+                elif iterations_taken >= 3:
+                    st.error(f"❌ **Status: MAX RETRIES REACHED ({iterations_taken}/3 repair attempts failed)**")
+                else:
+                    st.error("❌ **Status: FAILED**")
+
+                m1, m2, m3 = st.columns(3)
+                m1.metric("Result", "VERIFIED" if all_passed else ("MAX RETRIES REACHED" if iterations_taken >= 3 else "FAILED"))
+                m2.metric("Repair Attempts", f"{iterations_taken}/3")
+                m3.metric("Tests Passing", f"{test_results.get('passed', 0)}/{test_results.get('total', 0)}")
+
                 tab_code, tab_diff, tab_log = st.tabs(["📄 Corrected Code", "🔍 Diff", "📝 Changelog"])
 
                 corrected_final = (

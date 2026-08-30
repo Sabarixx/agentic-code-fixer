@@ -93,6 +93,8 @@ required_files = [
     "agent/nodes/coder.py",
     "agent/nodes/tester.py",
     "agent/nodes/refactor.py",
+    "agent/nodes/custom_debugger.py",
+    "agent/prompts/custom_debugger_prompt.py",
     "tools/sandbox_runner.py",
     "tools/file_writer.py",
     "tools/retry_utils.py",
@@ -117,6 +119,7 @@ packages = [
     ("pydantic", "pydantic"),
     ("dotenv", "python-dotenv"),
     ("streamlit", "streamlit"),
+    ("bandit", "bandit"),
 ]
 for module_name, pip_name in packages:
     try:

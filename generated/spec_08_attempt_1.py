@@ -15,8 +15,7 @@ def topological_sort(num_nodes: int, edges: List[List[int]]) -> Optional[List[in
     Returns
     -------
     Optional[List[int]]
-        A list containing a valid topological order of all nodes if one exists,
-        otherwise None.
+        A list of node indices in topological order, or None if the graph contains a cycle.
     """
     # Build adjacency list and indegree count
     adj = [[] for _ in range(num_nodes)]
@@ -25,7 +24,7 @@ def topological_sort(num_nodes: int, edges: List[List[int]]) -> Optional[List[in
         adj[u].append(v)
         indegree[v] += 1
 
-    # Initialize queue with nodes having zero indegree
+    # Initialize queue with nodes having indegree 0
     queue = deque([i for i, deg in enumerate(indegree) if deg == 0])
     order = []
 
@@ -37,5 +36,5 @@ def topological_sort(num_nodes: int, edges: List[List[int]]) -> Optional[List[in
             if indegree[nxt] == 0:
                 queue.append(nxt)
 
-    # If all nodes are processed, return order; otherwise a cycle exists
+    # If all nodes are processed, return order; otherwise cycle detected
     return order if len(order) == num_nodes else None

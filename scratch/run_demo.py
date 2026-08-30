@@ -12,9 +12,14 @@ Examples:
 from __future__ import annotations
 
 import json
+import os
 import sys
 import textwrap
 from pathlib import Path
+
+# Ensure UTF-8 output on Windows consoles
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
 ROOT = Path(__file__).resolve().parent.parent
 if str(ROOT) not in sys.path:

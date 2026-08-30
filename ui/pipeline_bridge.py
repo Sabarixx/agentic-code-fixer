@@ -65,3 +65,23 @@ def run_single_spec(spec_id: str) -> Generator[dict[str, Any], None, None]:
                 "update": node_update,
                 "state": state,
             }
+
+
+def run_custom_fix(
+    code: str,
+    expected_behavior: str = "",
+    error_message: str = "",
+    user_tests: str = "",
+) -> Generator[dict[str, Any], None, None]:
+    """
+    Run autonomous debugging, test synthesis, repair, and sandbox verification on custom user code.
+    """
+    from agent.nodes.custom_debugger import run_custom_debugging_pipeline
+
+    yield from run_custom_debugging_pipeline(
+        code=code,
+        expected_behavior=expected_behavior,
+        error_message=error_message,
+        user_tests=user_tests,
+    )
+
