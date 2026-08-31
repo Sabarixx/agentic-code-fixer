@@ -36,10 +36,14 @@ def test_sandbox_runner_custom_pytest_fail():
 
 
 def test_bandit_security_scan():
-    """Verify bandit scan flags dangerous eval calls."""
+    """Verify bandit scan flags dangerous eval calls and ignores normal assert statements."""
     unsafe_code = "def dangerous(cmd):\n    eval(cmd)\n"
     warnings = run_bandit_security_scan(unsafe_code)
     assert any("eval" in w.lower() for w in warnings)
+
+    code_with_assert = "def check(x):\n    assert x > 0\n"
+    assert_warnings = run_bandit_security_scan(code_with_assert)
+    assert not any("B101" in w for w in assert_warnings)
 
 
 def test_custom_fix_calculate_average():

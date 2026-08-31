@@ -234,12 +234,12 @@ def run_bandit_security_scan(code: str) -> list[str]:
     except Exception:
         pass
 
-    # 2. Bandit CLI analysis
+    # 2. Bandit CLI analysis (skipping B101 assert checks as assert is normal in test/debugging code)
     tmp_file = Path(tempfile.gettempdir()) / f"bandit_scan_{os.getpid()}_{hash(code)}.py"
     try:
         tmp_file.write_text(code, encoding="utf-8")
         proc = subprocess.run(
-            [sys.executable, "-m", "bandit", "-f", "json", "-q", str(tmp_file)],
+            [sys.executable, "-m", "bandit", "-f", "json", "-q", "-s", "B101", str(tmp_file)],
             capture_output=True,
             text=True,
             timeout=5,
@@ -247,9 +247,11 @@ def run_bandit_security_scan(code: str) -> list[str]:
         if proc.stdout.strip():
             data = json.loads(proc.stdout)
             for item in data.get("results", []):
+                test_id = item.get("test_id", "")
+                if test_id == "B101":
+                    continue
                 severity = item.get("issue_severity", "LOW")
                 text = item.get("issue_text", "")
-                test_id = item.get("test_id", "")
                 line = item.get("line_number", "")
                 warnings.append(f"[{severity}] {test_id}: {text} (line {line})")
     except Exception:
