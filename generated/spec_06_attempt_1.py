@@ -4,7 +4,7 @@ def search(nums: List[int], target: int) -> int:
     """
     Search for target in a rotated sorted array of distinct integers.
     Returns the index of target if found, otherwise -1.
-    Implements O(log n) binary search.
+    Implements binary search in O(log n) time.
     """
     if not nums:
         return -1
@@ -13,19 +13,17 @@ def search(nums: List[int], target: int) -> int:
 
     while left <= right:
         mid = (left + right) // 2
-        mid_val = nums[mid]
-
-        if mid_val == target:
+        if nums[mid] == target:
             return mid
 
         # Determine which side is properly sorted
-        if nums[left] <= mid_val:  # left side is sorted
-            if nums[left] <= target < mid_val:
+        if nums[left] <= nums[mid]:  # left side is sorted
+            if nums[left] <= target < nums[mid]:
                 right = mid - 1
             else:
                 left = mid + 1
         else:  # right side is sorted
-            if mid_val < target <= nums[right]:
+            if nums[mid] < target <= nums[right]:
                 left = mid + 1
             else:
                 right = mid - 1

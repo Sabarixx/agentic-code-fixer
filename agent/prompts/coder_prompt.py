@@ -54,8 +54,9 @@ def format_coder_retry_prompt(
     plan: dict[str, Any] | str,
     previous_code: str,
     test_results: dict[str, Any],
+    diagnosis: dict[str, Any] | None = None,
 ) -> str:
-    """Format retry prompt including previous code and failure tracebacks."""
+    """Format retry prompt including previous code, failure tracebacks, and deep diagnosis."""
     base_prompt = format_coder_user_prompt(spec, plan)
 
     failures = test_results.get("failure_details", [])
@@ -63,14 +64,29 @@ def format_coder_retry_prompt(
 
     retry_parts = [
         base_prompt,
+    ]
+
+    if diagnosis:
+        diag_section = (
+            "--- DEEP DIAGNOSIS ---\n"
+            f"Bug Category: {diagnosis.get('bug_category', 'Unknown')}\n"
+            f"Root Cause: {diagnosis.get('root_cause', 'Not identified')}\n"
+            f"Summary: {diagnosis.get('summary', 'N/A')}\n"
+            "Suggested Fixes:\n" + "\n".join(f"- {f}" for f in diagnosis.get("potential_fixes", [])) + "\n"
+            "Edge Cases to Consider:\n" + "\n".join(f"- {e}" for e in diagnosis.get("edge_cases", []))
+        )
+        retry_parts.append(diag_section)
+
+    retry_parts.extend([
         "--- PREVIOUS ATTEMPT (FAILED UNIT TESTS) ---",
         f"```python\n{previous_code}\n```",
         "--- TEST FAILURE DETAILS / TRACEBACK ---",
         failure_msg,
         "--- REPAIR INSTRUCTIONS ---",
-        "Analyze the test failure details above and fix the bug in your previous code.",
+        "Analyze the test failure details and the deep diagnosis provided above and fix the bug in your previous code.",
         "Ensure your fix addresses the specific failure case while maintaining the required signature.",
         "Return ONLY the updated executable Python code inside a ```python ... ``` code block.",
-    ]
+    ])
 
     return "\n\n".join(retry_parts)
+

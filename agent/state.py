@@ -21,8 +21,10 @@ class AgentState(TypedDict):
     plan: str
     code: str
     test_results: dict[str, Any]
+    diagnosis: dict[str, Any] | None
     iteration_count: int
     status: Status
+
 
 
 def initial_state(spec: dict[str, Any] | None = None) -> AgentState:
@@ -31,6 +33,7 @@ def initial_state(spec: dict[str, Any] | None = None) -> AgentState:
         "plan": "",
         "code": "",
         "test_results": {},
+        "diagnosis": None,
         "iteration_count": 0,
         "status": "idle",
     }

@@ -16,10 +16,9 @@ def merge(intervals: List[List[int]]) -> List[List[int]]:
 
     Notes
     -----
-    The function first sorts the intervals by their start times and then
-    iteratively merges overlapping intervals. The overall time complexity is
-    O(n log n) due to the sorting step, and the space complexity is O(n)
-    for the output list.
+    - If the input list is empty, an empty list is returned.
+    - The function sorts the intervals by their start value and then merges
+      overlapping intervals in a single pass.
     """
     if not intervals:
         return []

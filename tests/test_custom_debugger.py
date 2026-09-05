@@ -77,10 +77,15 @@ print(calculate_average([90, 80, 70]))
 print(calculate_average([100, 90, 80]))
 print(calculate_average([]))
 """
-    expected = "Calculate the average and grade for a list of marks. The function should handle an empty list gracefully instead of crashing."
+    expected = "Calculate the average and grade for a list of marks. When marks is empty, return 0, 'F' gracefully instead of crashing."
     error_msg = "ZeroDivisionError: division by zero"
+    user_tests = """def test_calculate_average():
+    assert calculate_average([90, 80, 70]) == (80.0, 'B')
+    assert calculate_average([]) == (0, 'F')
+"""
 
-    stages = list(run_custom_fix(buggy_code, expected, error_msg))
+    stages = list(run_custom_fix(buggy_code, language="python", expected_behavior=expected, error_message=error_msg, user_tests=user_tests))
+
     stage_names = [s.get("stage") for s in stages]
 
     assert "diagnosing" in stage_names
@@ -122,10 +127,25 @@ def test_custom_fix_find_largest_negative_numbers():
     assert find_largest([100, 50, 25]) == 100
 """
 
-    stages = list(run_custom_fix(buggy_code, expected, user_tests=user_tests))
+    stages = list(run_custom_fix(buggy_code, language="python", expected_behavior=expected, user_tests=user_tests))
+
     done_stage = next(s for s in stages if s.get("stage") == "done")
 
     assert done_stage.get("status") == "passed"
     corrected_code = done_stage.get("corrected_code", "")
     assert "find_largest" in corrected_code
     assert corrected_code != buggy_code
+
+
+def test_are_tests_compatible_detection():
+    """Verify incompatible leftover tests are detected and ignored."""
+    from agent.nodes.custom_debugger import are_tests_compatible
+
+    code = "function findMax(numbers: number[]) {\n    return Math.max(...numbers);\n}"
+    leftover_fixture_tests = "it('returns a user display name', () => { expect(getUserName({profile: null})).toBe(''); });"
+    matching_tests = "it('finds max number', () => { expect(findMax([1, 5, 2])).toBe(5); });"
+
+    assert are_tests_compatible(code, leftover_fixture_tests) is False
+    assert are_tests_compatible(code, matching_tests) is True
+    assert are_tests_compatible(code, "") is False
+

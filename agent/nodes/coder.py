@@ -33,21 +33,24 @@ def get_llm():
 
 
 def extract_code_block(response_text: str) -> str:
-    """Extract Python code from LLM response text, stripping markdown fences."""
-    # Pattern 1: ```python ... ```
-    pattern_python = re.compile(r"```python\s*(.*?)\s*```", re.DOTALL | re.IGNORECASE)
-    match = pattern_python.search(response_text)
+    """Extract code from LLM response text, stripping markdown fences and language specifiers."""
+    pattern_lang = re.compile(r"```(?:python|typescript|javascript|ts|js|rust)?\s*\n?(.*?)\s*```", re.DOTALL | re.IGNORECASE)
+    match = pattern_lang.search(response_text)
     if match:
-        return match.group(1).strip()
+        code = match.group(1).strip()
+        code = re.sub(r"^(?:typescript|javascript|python|ts|js|rust)\s*\n", "", code, flags=re.IGNORECASE)
+        return code.strip()
 
-    # Pattern 2: ``` ... ```
     pattern_generic = re.compile(r"```\s*(.*?)\s*```", re.DOTALL)
     match = pattern_generic.search(response_text)
     if match:
-        return match.group(1).strip()
+        code = match.group(1).strip()
+        code = re.sub(r"^(?:typescript|javascript|python|ts|js|rust)\s*\n", "", code, flags=re.IGNORECASE)
+        return code.strip()
 
-    # Fallback: treat entire response text as code
-    return response_text.strip()
+    clean = response_text.strip()
+    clean = re.sub(r"^(?:typescript|javascript|python|ts|js|rust)\s*\n", "", clean, flags=re.IGNORECASE)
+    return clean
 
 
 def validate_code_ast(code: str) -> tuple[bool, str]:
@@ -72,9 +75,10 @@ def coder_node(state: AgentState) -> dict[str, Any]:
 
     # Use retry prompt if previous attempt failed test execution
     if test_results and not test_results.get("all_passed", False) and previous_code:
-        user_prompt = format_coder_retry_prompt(spec, plan, previous_code, test_results)
+        user_prompt = format_coder_retry_prompt(spec, plan, previous_code, test_results, state.get("diagnosis"))
     else:
         user_prompt = format_coder_user_prompt(spec, plan)
+
 
     llm = get_llm()
 
@@ -88,6 +92,7 @@ def coder_node(state: AgentState) -> dict[str, Any]:
         raw_text = response.content if hasattr(response, "content") else str(response)
         code = extract_code_block(raw_text)
     except Exception as err:
+
         return {
             "status": "error",
             "code": f"# Coder failed: {err}",

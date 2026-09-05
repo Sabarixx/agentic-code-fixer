@@ -1,0 +1,12 @@
+{
+  "name": "agentic-fixer-web",
+  "version": "2.4.0",
+  "description": "Autonomous Multi-Agent Closed-Loop Code Synthesis & Verification Landing & Interactive IDE",
+  "scripts": {
+    "dev": "npx serve -l 3000 .",
+    "start": "npx serve -l 3000 ."
+  },
+  "keywords": ["ai", "debugger", "agentic", "code-repair"],
+  "author": "Antigravity",
+  "license": "MIT"
+}

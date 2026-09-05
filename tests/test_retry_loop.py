@@ -40,14 +40,15 @@ def test_route_error_returns_end():
     assert route_after_tester(state) == "__end__"
 
 
-def test_route_failed_under_max_returns_coder_node():
+def test_route_failed_under_max_returns_debugger_node():
     state = initial_state()
     state["status"] = "failed"
     state["iteration_count"] = 1
-    assert route_after_tester(state) == "coder_node"
+    assert route_after_tester(state) == "debugger_node"
 
     state["iteration_count"] = 2
-    assert route_after_tester(state) == "coder_node"
+    assert route_after_tester(state) == "debugger_node"
+
 
 
 def test_route_failed_at_max_returns_end():

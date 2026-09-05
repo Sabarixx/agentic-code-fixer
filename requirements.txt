@@ -6,3 +6,5 @@ python-dotenv
 langsmith
 streamlit
 bandit
+fastapi
+uvicorn

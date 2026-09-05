@@ -6,23 +6,17 @@ class LRUCache:
     Least Recently Used (LRU) cache implementation with O(1) average time complexity
     for get and put operations.
 
-    Attributes
-    ----------
-    capacity : int
-        Maximum number of key-value pairs the cache can hold.
-    cache : OrderedDict[int, int]
-        Ordered dictionary storing key-value pairs. The order represents
-        usage recency, with the most recently used item at the end.
+    Attributes:
+        capacity (int): Maximum number of items the cache can hold.
+        cache (OrderedDict[int, int]): Stores key-value pairs in order of usage.
     """
 
     def __init__(self, capacity: int) -> None:
         """
         Initialize the LRU cache with a given capacity.
 
-        Parameters
-        ----------
-        capacity : int
-            The maximum number of items the cache can store.
+        Args:
+            capacity (int): The maximum number of items the cache can store.
         """
         self.capacity: int = capacity
         self.cache: OrderedDict[int, int] = OrderedDict()
@@ -31,18 +25,14 @@ class LRUCache:
         """
         Retrieve the value associated with the given key from the cache.
 
-        If the key exists, it is marked as most recently used.
+        If the key exists, it is marked as recently used.
         If the key does not exist, return -1.
 
-        Parameters
-        ----------
-        key : int
-            The key to look up.
+        Args:
+            key (int): The key to look up.
 
-        Returns
-        -------
-        int
-            The value associated with the key, or -1 if the key is not present.
+        Returns:
+            int: The value associated with the key, or -1 if not found.
         """
         if key not in self.cache:
             return -1
@@ -54,17 +44,13 @@ class LRUCache:
         """
         Insert or update the value for a key in the cache.
 
-        If the key already exists, its value is updated and it is marked as
-        most recently used. If the key does not exist and the cache is at
-        capacity, the least recently used item is evicted before inserting
-        the new key-value pair.
+        If the key already exists, update its value and mark it as recently used.
+        If the key does not exist and the cache is at capacity, evict the least
+        recently used item before inserting the new key-value pair.
 
-        Parameters
-        ----------
-        key : int
-            The key to insert or update.
-        value : int
-            The value associated with the key.
+        Args:
+            key (int): The key to insert or update.
+            value (int): The value associated with the key.
         """
         if key in self.cache:
             # Update existing key and mark as recently used

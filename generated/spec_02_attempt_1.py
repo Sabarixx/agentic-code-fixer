@@ -1,3 +1,4 @@
+from __future__ import annotations
 from typing import Optional
 
 class ListNode:
@@ -5,14 +6,18 @@ class ListNode:
         self.val = val
         self.next = next
 
-def reverse_list(head: Optional[ListNode]) -> Optional[ListNode]:
+def reverse_list(head: ListNode | None) -> ListNode | None:
     """
     Reverse a singly linked list in place and return the new head.
 
-    Args:
-        head: The head of the singly linked list.
+    Parameters
+    ----------
+    head : ListNode | None
+        The head of the singly linked list.
 
-    Returns:
+    Returns
+    -------
+    ListNode | None
         The new head of the reversed list, or None if the input list is empty.
     """
     prev: Optional[ListNode] = None

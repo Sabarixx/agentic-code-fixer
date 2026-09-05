@@ -16,8 +16,10 @@ from agent.nodes.coder import coder_node
 from agent.nodes.planner import planner_node
 from agent.nodes.refactor import refactor_node
 from agent.nodes.tester import tester_node
+from agent.nodes.custom_debugger import debugger_node
 from agent.router import route_after_tester
 from agent.state import AgentState, initial_state
+
 
 
 def build_graph():
@@ -26,10 +28,14 @@ def build_graph():
     graph.add_node("coder_node", coder_node)
     graph.add_node("tester_node", tester_node)
     graph.add_node("refactor_node", refactor_node)
+    graph.add_node("debugger_node", debugger_node)
+
 
     graph.add_edge(START, "planner_node")
     graph.add_edge("planner_node", "coder_node")
     graph.add_edge("coder_node", "tester_node")
+    graph.add_edge("debugger_node", "coder_node")
+
 
     # Refactor node returns to tester_node for post-refactor validation
     graph.add_edge("refactor_node", END)
@@ -40,9 +46,11 @@ def build_graph():
         route_after_tester,
         {
             "coder_node": "coder_node",
+            "debugger_node": "debugger_node",
             "refactor_node": "refactor_node",
             "__end__": END,
         },
+
     )
 
     return graph.compile()

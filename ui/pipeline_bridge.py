@@ -26,7 +26,6 @@ def load_archived_traces() -> list[dict[str, Any]]:
 
         data = json.loads(trace_file.read_text(encoding="utf-8"))
 
-        # Look up attempt 1 and attempt 2 files if present
         attempt_1_file = archive_dir / f"{spec_id}_attempt_1.py"
         attempt_2_file = archive_dir / f"{spec_id}_attempt_2.py"
 
@@ -41,24 +40,17 @@ def load_archived_traces() -> list[dict[str, Any]]:
 def run_single_spec(spec_id: str) -> Generator[dict[str, Any], None, None]:
     """
     Run the LangGraph pipeline on a spec and yield intermediate node states.
-
-    Yields dicts with:
-        {"node": str, "state": AgentState}
     """
     spec_path = ROOT / "specs" / f"{spec_id}.json"
     if not spec_path.exists():
         raise FileNotFoundError(f"Spec file not found: {spec_path}")
 
     spec = json.loads(spec_path.read_text(encoding="utf-8"))
-
-    # Reset state cleanly to prevent any session leaks
     state = initial_state(spec)
-
     app = build_graph()
 
     for chunk in app.stream(state, stream_mode="updates"):
         for node_name, node_update in chunk.items():
-            # Update state with node output
             state = {**state, **node_update}
             yield {
                 "node": node_name,
@@ -69,19 +61,20 @@ def run_single_spec(spec_id: str) -> Generator[dict[str, Any], None, None]:
 
 def run_custom_fix(
     code: str,
+    language: str = "typescript",
     expected_behavior: str = "",
     error_message: str = "",
     user_tests: str = "",
 ) -> Generator[dict[str, Any], None, None]:
     """
-    Run autonomous debugging, test synthesis, repair, and sandbox verification on custom user code.
+    Run autonomous polyglot debugging, test synthesis, repair, and sandbox verification on custom user code.
     """
     from agent.nodes.custom_debugger import run_custom_debugging_pipeline
 
     yield from run_custom_debugging_pipeline(
         code=code,
+        language=language,
         expected_behavior=expected_behavior,
         error_message=error_message,
         user_tests=user_tests,
     )
-

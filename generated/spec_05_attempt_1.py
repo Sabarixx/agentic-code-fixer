@@ -12,21 +12,19 @@ def group_anagrams(strs: List[str]) -> List[List[str]]:
     Returns
     -------
     List[List[str]]
-        List of groups, each group containing strings that are anagrams.
+        List of groups, each containing strings that are anagrams.
         Order of groups and order within groups is not specified.
     """
     if not strs:
         return []
 
-    # Map from character count tuple to list of strings
-    groups: Dict[Tuple[int, ...], List[str]] = {}
-
+    anagram_map: Dict[Tuple[int, ...], List[str]] = {}
     for s in strs:
-        # Count occurrences of each letter
+        # Count occurrences of each letter (a-z)
         count = [0] * 26
         for ch in s:
             count[ord(ch) - 97] += 1
         key = tuple(count)
-        groups.setdefault(key, []).append(s)
+        anagram_map.setdefault(key, []).append(s)
 
-    return list(groups.values())
+    return list(anagram_map.values())

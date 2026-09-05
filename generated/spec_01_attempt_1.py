@@ -14,8 +14,8 @@ def two_sum(nums: List[int], target: int) -> List[int]:
     Returns
     -------
     List[int]
-        A list containing the two indices whose values sum to `target`.
-        The order of indices is arbitrary.
+        Two indices whose corresponding values sum to `target`. The order of indices
+        is arbitrary.
 
     Notes
     -----
@@ -26,13 +26,12 @@ def two_sum(nums: List[int], target: int) -> List[int]:
     if len(nums) < 2:
         return []
 
-    # Map from number to its index
-    seen = {}
+    index_map = {}
     for i, num in enumerate(nums):
         complement = target - num
-        if complement in seen:
-            return [seen[complement], i]
-        seen[num] = i
+        if complement in index_map:
+            return [index_map[complement], i]
+        index_map[num] = i
 
     # According to the problem statement, this line should never be reached.
     return []

@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agentic Code Fixer — Autonomous Multi-Agent Code Repair</title>
+  <meta name="description" content="Autonomous code repair loop with verifiable reasoning traces, instant AST patch synthesis, and test-driven validation.">
+  
+  <!-- Google Fonts: Plus Jakarta Sans for UI + JetBrains Mono for Code -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- ==================== TOP NAVIGATION BAR ==================== -->
+  <header class="navbar" id="topNav">
+    <div class="nav-container">
+      <a href="#hero" class="nav-brand">
+        <div class="logo-badge">
+          A
+          <span class="logo-dot"></span>
+        </div>
+        <span class="brand-text">agentic/fixer</span>
+      </a>
+
+      <nav class="nav-links">
+        <a href="#workspace" class="nav-link">Fixer</a>
+        <a href="#method" class="nav-link">How it works</a>
+        <a href="#field-notes" class="nav-link">Docs</a>
+        <a href="#api" class="nav-link">API</a>
+        <a href="#pricing" class="nav-link">Pricing</a>
+      </nav>
+
+      <div class="nav-actions">
+        <a href="#enterprise" class="nav-link enterprise-link">Enterprise</a>
+        <a href="#workspace" class="btn btn-start-fixing">
+          <span>Start fixing</span>
+          <span class="arrow-icon">→</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- ==================== FRONT PAGE HERO (PAGE 1) ==================== -->
+  <section class="section hero-front-section" id="hero">
+    <div class="hero-sun-glow"></div>
+    <div class="container">
+      <div class="hero-front-grid">
+        
+        <!-- Left Hero Content -->
+        <div class="hero-left-col">
+          <div class="hero-tagline-wrap">
+            <span class="tag-bullet">•</span>
+            <span>AUTONOMOUS DEBUGGING, WITH RECEIPTS</span>
+          </div>
+
+          <h1 class="hero-display-heading">
+            Fix the bug.<br>
+            <span class="heading-proof-teal">See the proof.</span>
+          </h1>
+
+          <p class="hero-subtext">
+            Agentic Code Fixer turns a failing snippet into a tested patch. No black box, no hand-waving — every inference, edit, and test run stays in view.
+          </p>
+
+          <div class="hero-cta-row">
+            <a href="#workspace" class="btn-try-fixer">
+              <span>Try the fixer</span>
+              <span class="arrow-icon">→</span>
+            </a>
+            <a href="#method" class="link-understand-method">Understand the method</a>
+          </div>
+
+          <div class="hero-security-badges">
+            <span class="badge-item">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+              <span>LOCAL-FIRST DEMO</span>
+            </span>
+            <span class="badge-item">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+              <span>YOUR CODE STAYS YOURS</span>
+            </span>
+          </div>
+        </div>
+
+        <!-- Right Floating Agent Proof Card -->
+        <div class="hero-right-col">
+          <div class="trace-preview-outer">
+            <div class="trace-preview-inner">
+              <div class="trace-preview-header">
+                <span class="trace-id-label">📈 AGENT TRACE / 0048</span>
+                <span class="badge-reproducible">reproducible</span>
+              </div>
+
+              <div class="trace-preview-step">
+                <div class="step-left-info">
+                  <span class="step-num-mono">01</span>
+                  <div>
+                    <div class="step-main-title">Find the assumption</div>
+                    <div class="step-sub-mono">profile can be null</div>
+                  </div>
+                </div>
+                <span class="step-check-icon">✓</span>
+              </div>
+
+              <div class="trace-preview-step">
+                <div class="step-left-info">
+                  <span class="step-num-mono">02</span>
+                  <div>
+                    <div class="step-main-title">Contain the failure</div>
+                    <div class="step-sub-mono">guarded access + fallback</div>
+                  </div>
+                </div>
+                <span class="step-check-icon">✓</span>
+              </div>
+
+              <div class="trace-preview-step step-last">
+                <div class="step-left-info">
+                  <span class="step-num-mono">03</span>
+                  <div>
+                    <div class="step-main-title">Prove the change</div>
+                    <div class="step-sub-mono">2 / 2 tests passing</div>
+                  </div>
+                </div>
+                <span class="step-check-icon">✓</span>
+              </div>
+
+              <div class="time-stamp-right">1.84s</div>
+            </div>
+
+            <!-- Floating Pill -->
+            <div class="floating-confidence-pill">
+              <span class="pill-label">confidence</span>
+              <span class="pill-value">high <span class="pill-score">/ 0.94</span></span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== SECTION 01: THE WORKSPACE (PAGE 2) ==================== -->
+  <section class="section section-dark" id="workspace">
+    <div class="container">
+      
+      <div class="section-header-split">
+        <div class="section-title-wrap">
+          <span class="section-num">01 / THE WORKSPACE</span>
+          <h2 class="workspace-heading">
+            Put the failure<br>
+            on the table.
+          </h2>
+        </div>
+        <div class="section-subtitle-wrap">
+          <p class="workspace-desc">
+            Paste a real bug or start with the fixture. The agent will narrate its work from first read to final assertion.
+          </p>
+        </div>
+      </div>
+
+      <!-- Live Interactive IDE Window -->
+      <div class="ide-frame" id="ideContainer">
+        
+        <!-- IDE Top Window Bar -->
+        <div class="ide-topbar">
+          <div class="window-controls">
+            <span class="dot dot-red"></span>
+            <span class="dot dot-yellow"></span>
+            <span class="dot dot-green"></span>
+            <span class="file-name" id="ideFileName">untitled-failure</span>
+          </div>
+
+          <div class="ide-actions">
+            <div class="lang-selector-wrap">
+              <span class="lang-label">LANGUAGE</span>
+              <select id="languageSelect" class="lang-dropdown" onchange="onLanguageChange(this.value)">
+                <option value="typescript" selected>TypeScript</option>
+                <option value="python">Python</option>
+                <option value="javascript">JavaScript</option>
+                <option value="rust">Rust</option>
+              </select>
+            </div>
+            <button class="btn-icon" title="Reset Fixture" onclick="resetCurrentFixture()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- IDE Main Body (Two Columns) -->
+        <div class="ide-grid">
+          
+          <!-- Left Column: Source Input & Tests -->
+          <div class="ide-left-pane">
+            
+            <!-- Source Input Section -->
+            <div class="pane-box source-box">
+              <div class="pane-header">
+                <div class="pane-title-wrap">
+                  <span class="pane-icon">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
+                  </span>
+                  <span class="pane-title">SOURCE INPUT</span>
+                </div>
+                <span class="line-counter" id="sourceLineCount">3 lines</span>
+              </div>
+
+              <div class="code-editor-wrapper">
+                <div class="line-numbers" id="sourceLineNumbers">
+                  <span>1</span><span>2</span><span>3</span>
+                </div>
+                <textarea id="sourceEditor" class="code-editor" spellcheck="false" placeholder="Enter failing source code...">function getUserName(user: User) {
+  return user.profile.name.toUpperCase();
+}</textarea>
+              </div>
+            </div>
+
+            <!-- Tests Section -->
+            <div class="pane-box tests-box">
+              <div class="pane-header">
+                <div class="pane-title-wrap">
+                  <span class="pane-icon">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 17 10 11 4 5"></polyline><line x1="12" y1="19" x2="20" y2="19"></line></svg>
+                  </span>
+                  <span class="pane-title">&gt;_ TESTS (optional)</span>
+                </div>
+                <span class="status-indicator">Contract Active</span>
+              </div>
+
+              <div class="code-editor-wrapper tests-editor-wrap">
+                <div class="line-numbers" id="testsLineNumbers">
+                  <span>1</span><span>2</span><span>3</span><span>4</span>
+                </div>
+                <textarea id="testsEditor" class="code-editor" spellcheck="false" placeholder="Enter test specs...">it("returns a user's display name", () => {
+  expect(getUserName({ profile: { name: "Ada" } })).toBe("ADA");
+  expect(getUserName({ profile: null })).toBe("");
+});</textarea>
+              </div>
+
+              <!-- Action Bar -->
+              <div class="pane-footer">
+                <label class="custom-checkbox">
+                  <input type="checkbox" id="simulateEdgeCase" checked>
+                  <span class="checkmark"></span>
+                  <span class="checkbox-label">Simulate a validation edge case</span>
+                </label>
+
+                <div class="footer-cta-wrap">
+                  <span class="footer-badge">Test contract attached</span>
+                  <button class="btn btn-amber-cta" id="runRepairBtn" onclick="triggerRunRepair()">
+                    <span class="btn-spinner" id="btnSpinner" style="display:none;"></span>
+                    <span class="btn-text" id="btnText">▶ Run repair</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Right Column: Repair Loop Stepper & Agent Output -->
+          <div class="ide-right-pane">
+            
+            <!-- Repair Loop Header & Stepper -->
+            <div class="repair-loop-header">
+              <div class="repair-title-wrap">
+                <span class="bolt-icon">⚡</span>
+                <span class="repair-title">REPAIR LOOP</span>
+              </div>
+
+              <div class="stepper-bar">
+                <div class="step-item" id="step1" data-step="1">
+                  <div class="step-circle">1</div>
+                  <span class="step-name">ANALYSIS</span>
+                </div>
+                <div class="step-connector" id="conn1"></div>
+                
+                <div class="step-item" id="step2" data-step="2">
+                  <div class="step-circle">2</div>
+                  <span class="step-name">DIAGNOSIS</span>
+                </div>
+                <div class="step-connector" id="conn2"></div>
+                
+                <div class="step-item" id="step3" data-step="3">
+                  <div class="step-circle">3</div>
+                  <span class="step-name">PATCH</span>
+                </div>
+                <div class="step-connector" id="conn3"></div>
+                
+                <div class="step-item" id="step4" data-step="4">
+                  <div class="step-circle">4</div>
+                  <span class="step-name">RE-RUN</span>
+                </div>
+                <div class="step-connector" id="conn4"></div>
+                
+                <div class="step-item" id="step5" data-step="5">
+                  <div class="step-circle">5</div>
+                  <span class="step-name">VALIDATION</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- CORRECTED CODE OUTPUT AREA -->
+            <div class="pane-box corrected-box" style="margin-bottom: 20px; display: none;" id="correctedCodeBox">
+              <div class="pane-header">
+                <div class="pane-title-wrap">
+                  <span class="pane-icon">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"></path></svg>
+                  </span>
+                  <span class="pane-title">CORRECTED CODE</span>
+                </div>
+                <button class="btn-micro" onclick="copyCorrectedCode()">Copy Code</button>
+              </div>
+              <div class="code-editor-wrapper">
+                <div class="line-numbers" id="correctedLineNumbers"></div>
+                <textarea id="correctedEditor" class="code-editor" readonly spellcheck="false"></textarea>
+              </div>
+            </div>
+
+            <!-- Agent Output Area -->
+            <div class="agent-output-container">
+              <div class="agent-output-header">
+                <span class="output-title">AGENT OUTPUT</span>
+                <div class="output-tools" id="outputTools" style="display: none;">
+                  <button class="btn-micro" onclick="copyGeneratedPatch()">Copy Patch</button>
+                  <button class="btn-micro" onclick="applyPatchToSource()">Apply to Source</button>
+                </div>
+              </div>
+
+              <!-- Idle State Display -->
+              <div class="agent-idle-state" id="agentIdleState">
+                <div class="idle-icon-box">
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect>
+                    <line x1="9" y1="4" x2="9" y2="20"></line>
+                  </svg>
+                </div>
+                <h4 class="idle-title">The agent is waiting for a failure</h4>
+                <p class="idle-desc">Run the fixture above to watch a transparent repair session.</p>
+              </div>
+
+              <!-- Active Streaming / Traces Output -->
+              <div class="agent-live-trace" id="agentLiveTrace" style="display: none;">
+                <!-- Trace cards will be dynamically rendered here with typewriter and diff highlighting -->
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ==================== SECTION 02: METHOD (PAGE 3) ==================== -->
+  <section class="section section-light" id="method">
+    <div class="container">
+      
+      <div class="method-layout">
+        <div class="method-intro">
+          <span class="section-num coral">02 / METHOD</span>
+          <h2 class="section-heading">A loop you<br>can audit.</h2>
+          <p class="method-desc">
+            The agent earns trust by narrowing uncertainty in public. Each phase leaves a useful artifact, not just a green check.
+          </p>
+        </div>
+
+        <div class="method-grid">
+          
+          <div class="method-card">
+            <span class="method-num">01</span>
+            <h3 class="method-title">Analyze</h3>
+            <p class="method-text">Builds a small map of symbols, paths, and the exact failing surface.</p>
+          </div>
+
+          <div class="method-card">
+            <span class="method-num">02</span>
+            <h3 class="method-title">Diagnose</h3>
+            <p class="method-text">Connects the observed failure to a specific assumption in your code.</p>
+          </div>
+
+          <div class="method-card">
+            <span class="method-num">03</span>
+            <h3 class="method-title">Patch</h3>
+            <p class="method-text">Prefers a narrow, readable edit over a clever rewrite or dependency leap.</p>
+          </div>
+
+          <div class="method-card">
+            <span class="method-num">04</span>
+            <h3 class="method-title">Validate</h3>
+            <p class="method-text">Re-runs the contract, checks the diff, and tells you when it cannot prove safety.</p>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ==================== SECTION 03: FIELD NOTES (PAGES 3 & 4) ==================== -->
+  <section class="section section-light section-bordered" id="field-notes">
+    <div class="container">
+      
+      <div class="field-notes-header">
+        <div>
+          <span class="section-num coral">03 / FIELD NOTES</span>
+          <h2 class="section-heading">Built for the<br>moment after panic.</h2>
+        </div>
+        <div class="header-link-wrap">
+          <a href="#api" class="text-link"><span>Explore Documentation</span> <span class="arrow">→</span></a>
+        </div>
+      </div>
+
+      <!-- Quickstart Code Window (Page 4) -->
+      <div class="quickstart-box">
+        <div class="quickstart-header">
+          <div class="quickstart-title">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+            <span>QUICKSTART.MD</span>
+          </div>
+          <button class="btn-copy-code" onclick="copySnippet('quickstartCode', this)">Copy snippet</button>
+        </div>
+
+        <div class="terminal-body" id="quickstartCode">
+          <pre><code><span class="tok-kw">import</span> { <span class="tok-fn">fixer</span> } <span class="tok-kw">from</span> <span class="tok-str">'@agentic/fixer'</span>
+
+<span class="tok-kw">const</span> result = <span class="tok-kw">await</span> fixer.<span class="tok-fn">repair</span>({
+  code,
+  tests,
+  language: <span class="tok-str">'typescript'</span>
+})
+
+<span class="tok-comment">// result.diff, result.tests, result.reasoning</span></code></pre>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ==================== SECTION 04: API ACCESS (PAGE 5) ==================== -->
+  <section class="section section-light section-bordered" id="api">
+    <div class="container">
+      
+      <div class="api-layout">
+        
+        <!-- Left text -->
+        <div class="api-intro">
+          <span class="section-num coral">04 / API ACCESS</span>
+          <h2 class="section-heading api-heading">
+            Make<br>
+            the<br>
+            repair<br>
+            loop<br>
+            <span class="coral-text">part<br>of<br>your<br>stack.</span>
+          </h2>
+          <p class="api-desc">
+            One endpoint for code, context, and tests. Stream the reasoning trace into your own review surface or CI logs.
+          </p>
+          <button class="btn btn-dark-pill" onclick="copyApiStarter(this)">
+            <span>Copy API starter</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+          </button>
+        </div>
+
+        <!-- Right Terminal Response Window -->
+        <div class="api-response-box">
+          <div class="api-terminal-bar">
+            <span class="api-method-badge">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
+              POST /v1/repair
+            </span>
+            <span class="response-status">200 OK</span>
+          </div>
+
+          <div class="api-json-body">
+            <pre><code>{
+  <span class="tok-key">"status"</span>: <span class="tok-str">"validated"</span>,
+  <span class="tok-key">"confidence"</span>: <span class="tok-num">0.94</span>,
+  <span class="tok-key">"patch"</span>: {
+    <span class="tok-key">"files"</span>: <span class="tok-num">1</span>,
+    <span class="tok-key">"tests_passed"</span>: <span class="tok-num">2</span>,
+    <span class="tok-key">"reasoning_url"</span>: <span class="tok-str">"/traces/0048"</span>
+  }
+}</code></pre>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ==================== SECTION 05: PRICING (PAGE 6) ==================== -->
+  <section class="section section-light section-bordered" id="pricing">
+    <div class="container">
+      
+      <div class="pricing-header">
+        <div>
+          <span class="section-num coral">05 / PRICING</span>
+          <h2 class="section-heading">Start small.<br>Scale with evidence.</h2>
+        </div>
+        <div class="pricing-meta">
+          <span class="mono-badge">NO CREDIT CARD FOR LOCAL RUNS</span>
+        </div>
+      </div>
+
+      <!-- 3 Tier Pricing Cards -->
+      <div class="pricing-grid">
+        
+        <!-- Local Tier -->
+        <div class="pricing-card">
+          <div class="card-head">
+            <h3 class="tier-title">Local</h3>
+            <div class="price-wrap">
+              <span class="price-val">$0</span>
+              <span class="price-period">/ month</span>
+            </div>
+            <p class="tier-desc">For your next stubborn bug</p>
+          </div>
+
+          <ul class="tier-features">
+            <li>
+              <span class="check-icon">✓</span>
+              <span>Unlimited local runs</span>
+            </li>
+            <li>
+              <span class="check-icon">✓</span>
+              <span>Reasoning trace</span>
+            </li>
+            <li>
+              <span class="check-icon">✓</span>
+              <span>Copyable patches</span>
+            </li>
+          </ul>
+
+          <button class="btn btn-outline" onclick="selectPlan('Local')">Choose Local Plan <span class="arrow">→</span></button>
+        </div>
+
+        <!-- Team Tier (Featured) -->
+        <div class="pricing-card card-featured">
+          <div class="featured-badge-wrap">
+            <span class="tier-title">Team</span>
+            <span class="badge-most-used">MOST USED</span>
+          </div>
+
+          <div class="card-head">
+            <div class="price-wrap">
+              <span class="price-val">$49</span>
+              <span class="price-period">/ month</span>
+            </div>
+            <p class="tier-desc">For teams shipping weekly</p>
+          </div>
+
+          <ul class="tier-features">
+            <li>
+              <span class="check-icon">✓</span>
+              <span>5,000 repair runs / month</span>
+            </li>
+            <li>
+              <span class="check-icon">✓</span>
+              <span>PR and CI integrations</span>
+            </li>
+            <li>
+              <span class="check-icon">✓</span>
+              <span>Shared trace history</span>
+            </li>
+          </ul>
+
+          <button class="btn btn-outline featured-btn" onclick="selectPlan('Team')">Get Started with Team <span class="arrow">→</span></button>
+        </div>
+
+        <!-- Enterprise Tier -->
+        <div class="pricing-card">
+          <div class="card-head">
+            <h3 class="tier-title">Enterprise</h3>
+            <div class="price-wrap">
+              <span class="price-text">Let’s talk</span>
+            </div>
+            <p class="tier-desc">For codebases with a perimeter</p>
+          </div>
+
+          <ul class="tier-features">
+            <li>
+              <span class="check-icon">✓</span>
+              <span>Private deployment</span>
+            </li>
+            <li>
+              <span class="check-icon">✓</span>
+              <span>SAML and audit exports</span>
+            </li>
+            <li>
+              <span class="check-icon">✓</span>
+              <span>Dedicated model routing</span>
+            </li>
+          </ul>
+
+          <button class="btn btn-outline" onclick="selectPlan('Enterprise')">Contact Enterprise <span class="arrow">→</span></button>
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ==================== SECTION 06: ENTERPRISE PERIMETER (PAGE 7) ==================== -->
+  <section class="section section-enterprise" id="enterprise">
+    <div class="container">
+      
+      <div class="enterprise-header-row">
+        <div class="enterprise-header-left">
+          <span class="section-num enterprise-num">06 / ENTERPRISE PERIMETER</span>
+          <h2 class="enterprise-heading">
+            Autonomous does not<br>
+            mean unsupervised.
+          </h2>
+          <p class="enterprise-desc">
+            Keep source inside your network, route sensitive workloads to your approved models, and give every repair a trace your reviewers can sign off on.
+          </p>
+        </div>
+        <div class="enterprise-header-right">
+          <a href="#pricing" class="btn btn-amber-cta enterprise-cta" onclick="selectPlan('Enterprise Perimeter')">
+            <span>Configure Perimeter</span>
+            <span class="arrow-icon">→</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- 3 Feature Cards Across Bottom -->
+      <div class="enterprise-grid">
+        
+        <div class="enterprise-card">
+          <div class="enterprise-card-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+          </div>
+          <h3 class="enterprise-card-title">Private by default</h3>
+          <p class="enterprise-card-text">No source retention. Bring your own model key.</p>
+        </div>
+
+        <div class="enterprise-card">
+          <div class="enterprise-card-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+          </div>
+          <h3 class="enterprise-card-title">Reviewable changes</h3>
+          <p class="enterprise-card-text">Policy gates before a patch can merge.</p>
+        </div>
+
+        <div class="enterprise-card">
+          <div class="enterprise-card-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+          </div>
+          <h3 class="enterprise-card-title">Observable runs</h3>
+          <p class="enterprise-card-text">Export traces to the tools your team already trusts.</p>
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ==================== FOOTER (PAGE 7) ==================== -->
+  <footer class="footer-cream">
+    <div class="container footer-container">
+      <div class="footer-left">
+        <a href="#hero" class="nav-brand">
+          <div class="logo-badge">
+            A
+            <span class="logo-dot"></span>
+          </div>
+          <span class="brand-text">agentic/fixer</span>
+        </a>
+      </div>
+      
+      <div class="footer-center">
+        <a href="#field-notes" class="footer-link">DOCS</a>
+        <a href="#api" class="footer-link">API STATUS</a>
+        <a href="#enterprise" class="footer-link">SECURITY</a>
+        <a href="https://github.com" target="_blank" rel="noopener" class="footer-link">GITHUB</a>
+      </div>
+
+      <div class="footer-right">
+        <span class="footer-copyright">© 2026 Agentic Systems</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Toast Notification Container -->
+  <div id="toast" class="toast"></div>
+
+  <!-- Scripts -->
+  <script src="fixtures.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
