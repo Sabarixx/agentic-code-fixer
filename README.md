@@ -4,7 +4,7 @@
 
 **Autonomous Closed-Loop Code Repair & Self-Correction Pipeline**
 
-[![Banner](assets/banner.svg)](https://github.com/Sabarixx/agentic-code-fixer)
+[![Banner](assets/hero_banner.svg)](https://github.com/Sabarixx/agentic-code-fixer)
 
 <p align="center">
   <a href="https://github.com/Sabarixx/agentic-code-fixer/releases"><img src="https://img.shields.io/badge/Version-v2.4.0-0d6e6e?style=for-the-badge&logo=git&logoColor=white" alt="Version"></a>
