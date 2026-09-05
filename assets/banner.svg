@@ -1,0 +1,271 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 480" width="100%" height="100%">
+  <defs>
+    <!-- Fonts -->
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap');
+
+      * {
+        box-sizing: border-box;
+      }
+
+      .text-heading {
+        font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        font-weight: 800;
+        letter-spacing: -0.03em;
+      }
+
+      .text-sub {
+        font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        font-weight: 500;
+      }
+
+      .text-mono {
+        font-family: 'JetBrains Mono', monospace;
+        font-weight: 600;
+      }
+
+      /* Ambient Glow Animations */
+      @keyframes ambientAura1 {
+        0%, 100% { opacity: 0.45; transform: translate(0, 0) scale(1); }
+        50% { opacity: 0.7; transform: translate(30px, -20px) scale(1.08); }
+      }
+
+      @keyframes ambientAura2 {
+        0%, 100% { opacity: 0.35; transform: translate(0, 0) scale(1); }
+        50% { opacity: 0.6; transform: translate(-25px, 20px) scale(1.12); }
+      }
+
+      @keyframes beaconPulse {
+        0% { r: 6px; opacity: 1; }
+        50% { r: 14px; opacity: 0.3; }
+        100% { r: 6px; opacity: 1; }
+      }
+
+      @keyframes waveFlow {
+        0% { stroke-dashoffset: 0; }
+        100% { stroke-dashoffset: -120; }
+      }
+
+      @keyframes scanline {
+        0% { transform: translateY(0); opacity: 0.15; }
+        50% { opacity: 0.4; }
+        100% { transform: translateY(180px); opacity: 0.15; }
+      }
+
+      @keyframes floatTerminal {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-6px); }
+      }
+
+      @keyframes badgeShimmer {
+        0%, 100% { opacity: 0.9; }
+        50% { opacity: 1; filter: drop-shadow(0 0 8px rgba(46, 196, 182, 0.4)); }
+      }
+
+      .glow-1 {
+        animation: ambientAura1 8s ease-in-out infinite;
+        transform-origin: 20% 30%;
+      }
+
+      .glow-2 {
+        animation: ambientAura2 10s ease-in-out infinite;
+        transform-origin: 85% 65%;
+      }
+
+      .pulse-beacon {
+        animation: beaconPulse 2.4s ease-in-out infinite;
+      }
+
+      .flow-path {
+        stroke-dasharray: 8 6;
+        animation: waveFlow 4s linear infinite;
+      }
+
+      .terminal-float {
+        animation: floatTerminal 6s ease-in-out infinite;
+      }
+
+      .badge-glow {
+        animation: badgeShimmer 4s ease-in-out infinite;
+      }
+    </style>
+
+    <!-- Gradients -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#080e12" />
+      <stop offset="50%" stop-color="#0c151a" />
+      <stop offset="100%" stop-color="#121f26" />
+    </linearGradient>
+
+    <linearGradient id="tealGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#0d6e6e" />
+      <stop offset="50%" stop-color="#2ec4b6" />
+      <stop offset="100%" stop-color="#5eead4" />
+    </linearGradient>
+
+    <linearGradient id="amberGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#e25a38" />
+      <stop offset="100%" stop-color="#e59b56" />
+    </linearGradient>
+
+    <linearGradient id="cardGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#15242c" stop-opacity="0.85" />
+      <stop offset="100%" stop-color="#0e171c" stop-opacity="0.95" />
+    </linearGradient>
+
+    <linearGradient id="termGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0b1318" />
+      <stop offset="100%" stop-color="#060a0d" />
+    </linearGradient>
+
+    <!-- Filters -->
+    <filter id="blurAura1" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="90" />
+    </filter>
+
+    <filter id="blurAura2" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="80" />
+    </filter>
+
+    <filter id="cardShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="16" stdDeviation="24" flood-color="#000000" flood-opacity="0.6" />
+    </filter>
+
+    <!-- Background Grid Pattern -->
+    <pattern id="gridPattern" width="36" height="36" patternUnits="userSpaceOnUse">
+      <path d="M 36 0 L 0 0 0 36" fill="none" stroke="rgba(255, 255, 255, 0.04)" stroke-width="1" />
+      <circle cx="36" cy="36" r="1" fill="rgba(46, 196, 182, 0.2)" />
+    </pattern>
+  </defs>
+
+  <!-- Background Layer -->
+  <rect width="1200" height="480" rx="20" fill="url(#bgGrad)" />
+  <rect width="1200" height="480" rx="20" fill="url(#gridPattern)" />
+
+  <!-- Ambient Glowing Auras -->
+  <circle class="glow-1" cx="240" cy="140" r="170" fill="#0d6e6e" opacity="0.5" filter="url(#blurAura1)" />
+  <circle class="glow-2" cx="1020" cy="320" r="190" fill="#2ec4b6" opacity="0.35" filter="url(#blurAura2)" />
+  <circle class="glow-1" cx="620" cy="400" r="140" fill="#e25a38" opacity="0.25" filter="url(#blurAura1)" />
+
+  <!-- Decorative Circuit Connectors -->
+  <g stroke="rgba(46, 196, 182, 0.25)" stroke-width="1.5" fill="none">
+    <path d="M 80 80 L 180 80 L 220 120 L 480 120" class="flow-path" />
+    <path d="M 720 80 L 840 80 L 890 130 L 1120 130" class="flow-path" />
+    <circle cx="180" cy="80" r="3" fill="#2ec4b6" />
+    <circle cx="220" cy="120" r="3" fill="#2ec4b6" />
+    <circle cx="840" cy="80" r="3" fill="#e59b56" />
+  </g>
+
+  <!-- Left Hero Block -->
+  <g transform="translate(80, 60)">
+    <!-- Brand Tag & Beacon -->
+    <g transform="translate(0, 0)">
+      <rect x="0" y="0" width="220" height="32" rx="16" fill="rgba(226, 90, 56, 0.15)" stroke="rgba(226, 90, 56, 0.35)" stroke-width="1" />
+      <circle cx="16" cy="16" r="5" fill="#e25a38" />
+      <circle class="pulse-beacon" cx="16" cy="16" r="6" fill="none" stroke="#e25a38" stroke-width="1.5" />
+      <text x="32" y="21" class="text-mono" font-size="12" fill="#ff7a59" letter-spacing="1.5">MULTI-AGENT ENGINE</text>
+    </g>
+
+    <!-- Main Title -->
+    <text x="0" y="85" class="text-heading" font-size="44" fill="#ffffff">
+      Agentic Code Fixer
+    </text>
+    <text x="0" y="130" class="text-heading" font-size="36" fill="url(#tealGrad)">
+      Autonomous Closed-Loop Repair
+    </text>
+
+    <!-- Subtitle -->
+    <text x="0" y="172" class="text-sub" font-size="15" fill="#94a3b8" letter-spacing="0.2">
+      Self-healing Python/JS pipeline powered by LangGraph, AST invariant analysis,
+    </text>
+    <text x="0" y="196" class="text-sub" font-size="15" fill="#94a3b8" letter-spacing="0.2">
+      and isolated sandbox contract verification.
+    </text>
+
+    <!-- Metric Badges Row -->
+    <g transform="translate(0, 240)">
+      <!-- Badge 1: 100% Sandbox Verified -->
+      <g class="badge-glow" transform="translate(0, 0)">
+        <rect width="138" height="38" rx="19" fill="rgba(46, 196, 182, 0.12)" stroke="rgba(46, 196, 182, 0.4)" stroke-width="1" />
+        <!-- Shield Icon -->
+        <path d="M 18 13 L 26 9 L 34 13 L 34 20 C 34 25 26 29 26 29 C 26 29 18 25 18 20 Z" fill="none" stroke="#2ec4b6" stroke-width="1.8" stroke-linejoin="round" />
+        <path d="M 22 19 L 25 22 L 30 16" fill="none" stroke="#2ec4b6" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+        <text x="42" y="24" class="text-mono" font-size="12" fill="#5eead4">100% Verified</text>
+      </g>
+
+      <!-- Badge 2: 0.98 Mean Confidence -->
+      <g class="badge-glow" transform="translate(150, 0)">
+        <rect width="144" height="38" rx="19" fill="rgba(229, 155, 86, 0.12)" stroke="rgba(229, 155, 86, 0.4)" stroke-width="1" />
+        <!-- Gauge/Star Icon -->
+        <circle cx="26" cy="19" r="7" fill="none" stroke="#e59b56" stroke-width="1.8" />
+        <path d="M 26 15 L 26 19 L 29 21" stroke="#e59b56" stroke-width="1.8" stroke-linecap="round" />
+        <text x="42" y="24" class="text-mono" font-size="12" fill="#e59b56">0.98 Score</text>
+      </g>
+
+      <!-- Badge 3: 40/40 Unit Tests Passing -->
+      <g class="badge-glow" transform="translate(306, 0)">
+        <rect width="148" height="38" rx="19" fill="rgba(16, 185, 129, 0.12)" stroke="rgba(16, 185, 129, 0.4)" stroke-width="1" />
+        <!-- Check Circle Icon -->
+        <circle cx="26" cy="19" r="8" fill="none" stroke="#10b981" stroke-width="1.8" />
+        <path d="M 22 19 L 25 22 L 30 16" fill="none" stroke="#10b981" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+        <text x="42" y="24" class="text-mono" font-size="12" fill="#34d399">40/40 Tests</text>
+      </g>
+
+      <!-- Badge 4: Production Ready -->
+      <g class="badge-glow" transform="translate(466, 0)">
+        <rect width="112" height="38" rx="19" fill="rgba(255, 255, 255, 0.08)" stroke="rgba(255, 255, 255, 0.18)" stroke-width="1" />
+        <text x="56" y="24" text-anchor="middle" class="text-mono" font-size="12" fill="#cbd5e1">v2.4 Ready</text>
+      </g>
+    </g>
+  </g>
+
+  <!-- Right Floating Terminal Graphic -->
+  <g class="terminal-float" transform="translate(680, 64)" filter="url(#cardShadow)">
+    <rect width="440" height="340" rx="14" fill="url(#termGrad)" stroke="rgba(255, 255, 255, 0.12)" stroke-width="1.5" />
+    
+    <!-- Window Bar -->
+    <rect width="440" height="38" rx="14" fill="#121e25" />
+    <rect y="24" width="440" height="14" fill="#121e25" />
+    <line x1="0" y1="38" x2="440" y2="38" stroke="rgba(255, 255, 255, 0.08)" stroke-width="1" />
+
+    <!-- Window Dots -->
+    <circle cx="22" cy="19" r="5" fill="#ff5f56" />
+    <circle cx="38" cy="19" r="5" fill="#ffbd2e" />
+    <circle cx="54" cy="19" r="5" fill="#27c93f" />
+
+    <text x="220" y="24" text-anchor="middle" class="text-mono" font-size="11" fill="#94a3b8">
+      agentic_pipeline.py — execution trace
+    </text>
+
+    <!-- Terminal Code / Trace Lines -->
+    <g transform="translate(24, 66)" class="text-mono" font-size="12">
+      <!-- Line 1 -->
+      <text x="0" y="16" fill="#64748b">&gt; RUNNING CONTRACT TEST SUITE...</text>
+      
+      <!-- Line 2: Failure -->
+      <text x="0" y="44" fill="#fb7185">✖ [FAIL] ZeroDivisionError at metrics.py:42</text>
+      
+      <!-- Line 3: Invocation -->
+      <text x="0" y="72" fill="#94a3b8">&gt; Invoking LangGraph Self-Correction Engine</text>
+      
+      <!-- Line 4: AST Diagnosis -->
+      <text x="0" y="100" fill="#e59b56">ℹ AST: Invariant violation localized to divisor</text>
+      
+      <!-- Line 5: Patch Synthesized -->
+      <rect x="-6" y="112" width="392" height="28" rx="6" fill="rgba(46, 196, 182, 0.12)" stroke="rgba(46, 196, 182, 0.25)" stroke-width="1" />
+      <text x="6" y="131" fill="#5eead4" font-weight="700">+ if total_samples == 0: return 0.0</text>
+      
+      <!-- Line 6: Sandbox Verification -->
+      <text x="0" y="166" fill="#94a3b8">&gt; Isolated Sandbox Verification (pytest -q)</text>
+      
+      <!-- Line 7: Success pass -->
+      <text x="0" y="194" fill="#34d399">✔ 40 passed in 0.36s (100% contract coverage)</text>
+
+      <!-- Line 8: Emitted proof -->
+      <text x="0" y="222" fill="#e59b56">★ PROOF RECEIPT EMITTED | CONFIDENCE: 0.98</text>
+    </g>
+  </g>
+
+  <!-- Bottom Border Glow Line -->
+  <line x1="40" y1="479" x2="1160" y2="479" stroke="url(#tealGrad)" stroke-width="2" stroke-linecap="round" opacity="0.6" />
+</svg>
