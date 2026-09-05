@@ -7,12 +7,17 @@
 [![Banner](assets/hero_banner.svg)](https://github.com/Sabarixx/agentic-code-fixer)
 
 <p align="center">
+  <a href="https://agentic-code-fixer.onrender.com/"><img src="https://img.shields.io/badge/Render-Live%20App-46E3B7?style=for-the-badge&logo=render&logoColor=black" alt="Live on Render"></a>
   <a href="https://github.com/Sabarixx/agentic-code-fixer/releases"><img src="https://img.shields.io/badge/Version-v2.4.0-0d6e6e?style=for-the-badge&logo=git&logoColor=white" alt="Version"></a>
   <a href="https://python.org"><img src="https://img.shields.io/badge/Python-3.10%2B-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python"></a>
   <a href="https://langchain-ai.github.io/langgraph/"><img src="https://img.shields.io/badge/LangGraph-StateGraph-8B5CF6?style=for-the-badge&logo=langchain&logoColor=white" alt="LangGraph"></a>
   <a href="https://groq.com"><img src="https://img.shields.io/badge/LLM-Groq%20%7C%20Gemini-e59b56?style=for-the-badge&logo=openai&logoColor=white" alt="LLM Provider"></a>
   <a href="#-verification--tests"><img src="https://img.shields.io/badge/Sandbox%20Tests-40%2F40%20Passing-10b981?style=for-the-badge&logo=pytest&logoColor=white" alt="Tests"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-6366F1?style=for-the-badge" alt="License"></a>
+</p>
+
+<p align="center">
+  🌐 <b>Live Production Deployment:</b> <a href="https://agentic-code-fixer.onrender.com/"><b>https://agentic-code-fixer.onrender.com/</b></a>
 </p>
 
 </div>
@@ -122,7 +127,9 @@ python main.py --spec specs/spec_01_two_sum.json
 ---
 
 ### 4.2 Interactive Streamlit Workspace
-Launch the full interactive studio with visual diff inspector and live LangGraph stepper:
+- **Online Live App (Render)**: 👉 [**https://agentic-code-fixer.onrender.com/**](https://agentic-code-fixer.onrender.com/)
+
+To run locally with live LangGraph stepper & AST diff inspector:
 ```bash
 streamlit run ui/app.py
 ```
@@ -139,7 +146,8 @@ start web/index.html
 # Option B: Run local HTTP server
 python -m http.server 3000 --directory web
 ```
-- **Live App**: [`http://localhost:3000/index.html`](http://localhost:3000/index.html)
+- **Live Render App**: [`https://agentic-code-fixer.onrender.com/`](https://agentic-code-fixer.onrender.com/)
+- **Live Local Web**: [`http://localhost:3000/index.html`](http://localhost:3000/index.html)
 - **Animated Deck**: [`http://localhost:3000/presentation.html`](http://localhost:3000/presentation.html)
 
 ---
