@@ -30,6 +30,11 @@
 
 Unlike traditional "one-shot" LLMs that guess code without execution feedback, Agentic Code Fixer enforces a mathematical closed-loop: it analyzes Abstract Syntax Tree (AST) invariants, diagnoses causal failure frames, generates minimal surgical diffs, and re-executes tests in an isolated sandbox before emitting an audit-verified solution.
 
+> [!TIP]
+> ### 🌐 Live Cloud Demo on Render
+> Try the fully interactive self-healing agent directly in your browser without local setup:  
+> 👉 **[https://agentic-code-fixer.onrender.com/](https://agentic-code-fixer.onrender.com/)**
+
 > [!IMPORTANT]
 > **Zero Hallucination Perimeter**: Every synthesized patch is executed against real test contracts in an ephemeral sandbox. Code is only marked as verified when 100% of test assertions pass.
 
