@@ -152,6 +152,9 @@ FIXTURES = {
   expect(getUserName({ profile: { name: "Ada" } })).toBe("ADA");
   expect(getUserName({ profile: null })).toBe("");
 });""",
+        "patchedCode": """function getUserName(user: User) {
+  return user?.profile?.name?.toUpperCase() ?? "";
+}""",
         "analysis": "→ AST Parsed: member expression user.profile.name\n→ Inferred schema: profile can be null | undefined\n→ Nullability hazard on line 2",
         "diagnosis": "TypeError: Cannot read properties of null (reading 'name')\nSafe navigation operator (?.) required with empty string fallback.",
         "patch_del": "-  return user.profile.name.toUpperCase();",
@@ -176,6 +179,17 @@ FIXTURES = {
     assert binary_search([1, 3, 5, 7, 9], 9) == 4
     assert binary_search([1, 3, 5, 7, 9], 1) == 0
     assert binary_search([1, 3, 5, 7, 9], 6) == -1""",
+        "patchedCode": """def binary_search(arr, target):
+    left, right = 0, len(arr) - 1
+    while left <= right:
+        mid = (left + right) // 2
+        if arr[mid] == target:
+            return mid
+        elif arr[mid] < target:
+            left = mid + 1
+        else:
+            right = mid - 1
+    return -1""",
         "analysis": "→ Control Flow Analysis: Loop invariant while left < right\n→ Boundary condition: rightmost element index excluded",
         "diagnosis": "AssertionError: 9 not found at index 4.\nRequires while left <= right and right = len(arr) - 1.",
         "patch_del": "-    left, right = 0, len(arr)\n-    while left < right:",
@@ -191,6 +205,10 @@ FIXTURES = {
 }""",
         "tests": """console.assert(calculateDiscount(100, 20) === 80, '20% off $100 should be $80');
 console.assert(calculateDiscount(50, 0) === 50, '0% off $50 should be $50');""",
+        "patchedCode": """function calculateDiscount(price, discount) {
+  if (discount < 0 || discount > 100) return price;
+  return price - price * (discount / 100);
+}""",
         "analysis": "→ Boundary Check: discount validation\n→ Inferred semantics: discount percentage arithmetic",
         "diagnosis": "Logical edge cases for negative numbers or missing bounds.\nGuard added for discount ranges.",
         "patch_del": "-  if (discount > 100) return 0;",
@@ -211,6 +229,13 @@ console.assert(calculateDiscount(50, 0) === 50, '0% off $50 should be $50');""",
 fn test_safe_divide() {
     assert_eq!(safe_divide(10.0, 2.0), Some(5.0));
     assert_eq!(safe_divide(10.0, 0.0), None);
+}""",
+        "patchedCode": """pub fn safe_divide(numerator: f64, denominator: f64) -> Option<f64> {
+    if denominator == 0.0 {
+        None
+    } else {
+        Some(numerator / denominator)
+    }
 }""",
         "analysis": "→ Option<T> Type Safety: Zero division guard in Rust\n→ IEEE 754 Floating point boundary analysis",
         "diagnosis": "Division by zero returns Option::None safely.",
@@ -498,6 +523,7 @@ with col_right:
                         test_summary = f"✓ {passed_count}/{total_count} Sandbox assertions passing."
 
                 final_candidate_code = candidate_code
+                st.session_state["final_corrected_code"] = candidate_code
 
                 # Construct precise line diffs
                 diff_lines = list(difflib.unified_diff(
@@ -566,12 +592,8 @@ with col_right:
                 )
         else:
             # Default fixture progression with verified steps
-            final_candidate_code = (
-                current_fixture['code'].replace(
-                    current_fixture['patch_del'].strip('- '),
-                    current_fixture['patch_add'].strip('+ ')
-                ) if 'patch_del' in current_fixture else current_fixture['code']
-            )
+            final_candidate_code = current_fixture.get("patchedCode", current_fixture["code"])
+            st.session_state["final_corrected_code"] = final_candidate_code
 
             output_box.markdown(
                 textwrap.dedent(f"""
@@ -624,8 +646,11 @@ with col_right:
             )
 
 # FULL HORIZONTAL WIDTH CORRECTED CODE BOX (Outside columns, spanning 100% width)
-if run_clicked and 'final_candidate_code' in locals() and final_candidate_code.strip():
-    code_lang = "python" if selected_lang.lower() == "python" else "typescript"
+is_in_repair_mode = (run_clicked or st.session_state.get("active_mode") == "repair")
+corrected_to_show = st.session_state.get("final_corrected_code", "")
+
+if is_in_repair_mode and corrected_to_show:
+    code_lang = selected_lang.lower()
     md(f"""
     <div class="corrected-code-full-wrap">
         <div class="corrected-code-header-bar">
@@ -640,7 +665,7 @@ if run_clicked and 'final_candidate_code' in locals() and final_candidate_code.s
         </div>
     </div>
     """)
-    st.code(final_candidate_code, language=code_lang, line_numbers=True)
+    st.code(corrected_to_show, language=code_lang, line_numbers=True)
 
 
 # -----------------------------------------------------------------------------
