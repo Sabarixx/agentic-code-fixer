@@ -45,10 +45,12 @@ Unlike traditional "one-shot" LLMs that guess code without execution feedback, A
 | Category | Capability | Value & Benefit |
 | :--- | :--- | :--- |
 | ![Architecture](https://img.shields.io/badge/Architecture-LangGraph-8B5CF6?style=flat-square) | **5-Phase Self-Healing State Machine** | Moves systematically through *Analysis*, *Diagnosis*, *Patch Synthesis*, *Sandbox Re-Run*, and *Receipt Validation* to eliminate recursive failure loops. |
+| ![DuckDebugger](https://img.shields.io/badge/Tutor-Duck_Debugger_🦆-FACC15?style=flat-square) | **Socratic Duck Debugger** | Interactive 3-level progressive hint tutor (*Conceptual* $\rightarrow$ *Structural* $\rightarrow$ *Implementation*) with frustration detection and solution gating. |
+| ![LanguageParity](https://img.shields.io/badge/Polyglot-Language_Parity-10b981?style=flat-square) | **Strict Source-In = Source-Out** | Guarantees 100% language fidelity across Python, Java, TypeScript, JavaScript, Rust, C++, and Go—never translating or mixing languages. |
 | ![Precision](https://img.shields.io/badge/Precision-AST_Diffs-0d6e6e?style=flat-square) | **Surgical Invariant Repair** | Emits the smallest possible idempotent patch rather than rewriting entire files, preserving code style and avoiding side-effect regressions. |
 | ![Security](https://img.shields.io/badge/Security-Isolated_Sandbox-10b981?style=flat-square) | **Zero-Leak Isolated Execution** | Executes test suites in sandboxed containers with strict memory limits, timeouts, and restricted syscalls to safeguard your environment. |
 | ![Confidence](https://img.shields.io/badge/Verification-Bayesian_Score-e59b56?style=flat-square) | **Deterministic Proof Receipts** | Emits cryptographic execution traces and confidence ratings (e.g., `0.98`) to enable zero-friction pull request approvals. |
-| ![Interfaces](https://img.shields.io/badge/UI-Streamlit_%26_Web-e25a38?style=flat-square) | **Multi-Surface Accessibility** | Ships with a modern Streamlit workspace, a standalone HTML5/JS web dashboard, and an interactive animated technical presentation deck. |
+| ![Interfaces](https://img.shields.io/badge/UI-Streamlit_%26_Unified_Web-e25a38?style=flat-square) | **Multi-Surface Accessibility** | Ships with a modern Streamlit workspace, a unified FastAPI + HTML5/JS Web IDE with Duck Debugger chat, and an interactive presentation deck. |
 | ![Speed](https://img.shields.io/badge/Speed-Sub--Second-2ec4b6?style=flat-square) | **Parallel Async Reasoning** | Powered by high-throughput Groq and Google Gemini inference to deliver verified fixes in under 1.5 seconds per iteration. |
 
 ---
@@ -142,22 +144,38 @@ Open [`http://localhost:8501`](http://localhost:8501) in your browser to test cu
 
 ---
 
-### 4.3 Web Dashboard & Animated Presentation
-To explore the standalone web interface and animated slide deck:
+### 4.3 Unified Web IDE & 🦆 Duck Debugger
+Run the complete, polyglot IDE and Socratic AI debugging tutor on a single unified server:
 ```bash
-# Option A: Open directly in browser
-start web/index.html
-
-# Option B: Run local HTTP server
-python -m http.server 3000 --directory web
+python ui/api_server.py
 ```
-- **Live Render App**: [`https://agentic-code-fixer.onrender.com/`](https://agentic-code-fixer.onrender.com/)
-- **Live Local Web**: [`http://localhost:3000/index.html`](http://localhost:3000/index.html)
-- **Animated Deck**: [`http://localhost:3000/presentation.html`](http://localhost:3000/presentation.html)
+- Open **[`http://localhost:8000`](http://localhost:8000)** in your browser.
+- **🦆 Socratic Duck Debugger**:
+  - **Level 1 (Conceptual)**: Explores general programming principles and language-specific fundamentals.
+  - **Level 2 (Structural)**: Directs focus to loop conditions, type checks, or branch boundaries.
+  - **Level 3 (Implementation)**: Provides concrete directional hints.
+  - **Frustration Detection**: Automatically escalates hint depth if you indicate you are stuck.
+  - **Source-In = Source-Out Parity**: If you submit Python, the duck responds strictly in Python; if Java, in Java; if TypeScript/JS, in TypeScript/JS.
+  - **"I give up, let the Agent fix it! ⚡"**: Instantly transitions to the closed-loop autonomous repair pipeline.
 
 ---
 
-### 4.4 Python Programmatic SDK
+### 4.4 Web Dashboard & Animated Presentation
+To explore the standalone web interface and animated slide deck:
+```bash
+# Option A: Unified FastAPI Server (Recommended)
+python ui/api_server.py  # Accessible at http://localhost:8000
+
+# Option B: Run local static HTTP server
+python -m http.server 3000 --directory web
+```
+- **Live Render App**: [`https://agentic-code-fixer.onrender.com/`](https://agentic-code-fixer.onrender.com/)
+- **Unified Web IDE**: [`http://localhost:8000`](http://localhost:8000)
+- **Animated Deck**: [`http://localhost:8000/presentation.html`](http://localhost:8000/presentation.html)
+
+---
+
+### 4.5 Python Programmatic SDK
 Integrate the self-correction engine directly into your custom Python application or agent:
 
 ```python

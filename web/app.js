@@ -15,13 +15,43 @@ document.addEventListener('DOMContentLoaded', () => {
   setupScrollSpy();
 });
 
+function detectClientLanguage(code) {
+  const clean = code.trim();
+  if (!clean) return currentLang;
+  
+  if ((clean.includes('def ') || clean.includes('import ') || clean.includes('elif ') || clean.includes('print(')) && !clean.includes('function ') && !clean.includes('console.log')) {
+    return 'python';
+  }
+  if (clean.includes('public static void main') || clean.includes('System.out.println') || clean.includes('public class ')) {
+    return 'java';
+  }
+  if (clean.includes('fn ') || clean.includes('println!') || clean.includes('let mut ')) {
+    return 'rust';
+  }
+  if (clean.includes('interface ') || clean.includes(': string') || clean.includes(': number') || clean.includes(': boolean')) {
+    return 'typescript';
+  }
+  if (clean.includes('function ') || clean.includes('const ') || clean.includes('let ') || clean.includes('console.log')) {
+    return 'javascript';
+  }
+  return currentLang;
+}
+
 /* ==================== EDITOR & LINE NUMBER MANAGEMENT ==================== */
 function initEditors() {
   const sourceEditor = document.getElementById('sourceEditor');
   const testsEditor = document.getElementById('testsEditor');
+  const langSelect = document.getElementById('languageSelect');
 
   if (sourceEditor) {
-    sourceEditor.addEventListener('input', () => updateEditorLines('sourceEditor', 'sourceLineNumbers', 'sourceLineCount'));
+    sourceEditor.addEventListener('input', () => {
+      updateEditorLines('sourceEditor', 'sourceLineNumbers', 'sourceLineCount');
+      const detected = detectClientLanguage(sourceEditor.value);
+      if (detected && detected !== currentLang) {
+        currentLang = detected;
+        if (langSelect) langSelect.value = detected;
+      }
+    });
     updateEditorLines('sourceEditor', 'sourceLineNumbers', 'sourceLineCount');
   }
 
@@ -144,7 +174,8 @@ async function triggerRunRepair() {
   try {
     console.log("Requesting repair for:", { source: currentSource, tests: currentTests });
 
-    const response = await fetch('http://localhost:8000/repair', {
+    const apiUrl = `${getApiBaseUrl()}/repair`;
+    const response = await fetch(apiUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -412,4 +443,181 @@ function setupScrollSpy() {
       }
     });
   });
+}
+
+function getApiBaseUrl() {
+  if (typeof window !== 'undefined' && window.location && (window.location.protocol === 'http:' || window.location.protocol === 'https:')) {
+    // If running on a live web server or port 8000
+    return window.location.origin;
+  }
+  return 'http://localhost:8000';
+}
+
+/* ==================== DUCK DEBUGGER LOGIC ==================== */
+let duckSessionId = null;
+let currentDuckLevel = 1;
+
+function updateDuckLevelUI(level) {
+  currentDuckLevel = level || 1;
+  const badge = document.getElementById('duckLevelBadge');
+  if (!badge) return;
+
+  const levelNames = {
+    1: 'Level 1: Conceptual',
+    2: 'Level 2: Structural',
+    3: 'Level 3: Implementation'
+  };
+
+  badge.innerText = levelNames[currentDuckLevel] || `Level ${currentDuckLevel}`;
+  badge.className = `duck-level-badge level-${currentDuckLevel}`;
+}
+
+async function triggerDuckDebug() {
+  const overlay = document.getElementById('duckChatOverlay');
+  const messagesContainer = document.getElementById('duckChatMessages');
+
+  if (!overlay) return;
+
+  // Reset chat and open overlay
+  messagesContainer.innerHTML = '';
+  duckSessionId = null;
+  updateDuckLevelUI(1);
+  overlay.style.display = 'flex';
+
+  appendDuckMessage('duck', "Quack! 🦆 I'm your Socratic debugging partner. I won't give you the answer right away, but I'll guide you step-by-step to discover the bug yourself.\n\nTake a look at your code and test suite. What do you think might be going wrong?", null);
+}
+
+function closeDuckChat() {
+  const overlay = document.getElementById('duckChatOverlay');
+  if (overlay) overlay.style.display = 'none';
+}
+
+function giveUpAndRepair() {
+  closeDuckChat();
+  showToast("Switching to Autonomous Multi-Agent Repair Loop... ⚡");
+  triggerRunRepair();
+}
+
+function formatMarkdownSnippet(text) {
+  if (!text) return '';
+  // Basic markdown formatting: escape HTML, format code blocks, inline code, bold
+  let safe = text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+
+  // Triple backticks code block
+  safe = safe.replace(/```(?:[a-zA-Z0-9_-]+)?\n?([\s\S]*?)```/g, '<pre><code>$1</code></pre>');
+  // Single backticks inline code
+  safe = safe.replace(/`([^`]+)`/g, '<code>$1</code>');
+  // Bold
+  safe = safe.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+  // Newlines to <br> (outside pre tags)
+  safe = safe.replace(/\n/g, '<br>');
+  return safe;
+}
+
+function appendDuckMessage(role, text, criticMonologue = null) {
+  const container = document.getElementById('duckChatMessages');
+  if (!container) return;
+
+  const bubble = document.createElement('div');
+  bubble.className = `chat-bubble ${role}`;
+
+  let htmlContent = formatMarkdownSnippet(text);
+
+  if (role === 'duck' && criticMonologue) {
+    htmlContent += `<div class="critic-monologue-box">💡 <em>Internal analysis:</em> ${formatMarkdownSnippet(criticMonologue)}</div>`;
+  }
+
+  bubble.innerHTML = htmlContent;
+  container.appendChild(bubble);
+  container.scrollTop = container.scrollHeight;
+}
+
+function showDuckTypingIndicator() {
+  const container = document.getElementById('duckChatMessages');
+  if (!container) return null;
+
+  const typingBubble = document.createElement('div');
+  typingBubble.className = 'chat-bubble duck';
+  typingBubble.id = 'duckTypingBubble';
+  typingBubble.innerHTML = '<div class="duck-typing"><span></span><span></span><span></span></div>';
+  container.appendChild(typingBubble);
+  container.scrollTop = container.scrollHeight;
+  return typingBubble;
+}
+
+function removeDuckTypingIndicator() {
+  const typingBubble = document.getElementById('duckTypingBubble');
+  if (typingBubble) typingBubble.remove();
+}
+
+function sendQuickPrompt(promptText) {
+  const input = document.getElementById('duckChatInput');
+  if (input) {
+    input.value = promptText;
+    sendMessageToDuck();
+  }
+}
+
+async function sendMessageToDuck() {
+  const input = document.getElementById('duckChatInput');
+  const userMsg = input.value.trim();
+  if (!userMsg) return;
+
+  const sourceEditor = document.getElementById('sourceEditor');
+  const testsEditor = document.getElementById('testsEditor');
+
+  appendDuckMessage('user', userMsg);
+  input.value = '';
+
+  const sendBtn = document.getElementById('btnSendDuck');
+  if (sendBtn) sendBtn.disabled = true;
+
+  showDuckTypingIndicator();
+
+  try {
+    const apiUrl = `${getApiBaseUrl()}/duck_chat`;
+    const response = await fetch(apiUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        session_id: duckSessionId,
+        code: sourceEditor ? sourceEditor.value : "",
+        tests: testsEditor ? testsEditor.value : "",
+        user_message: userMsg,
+        language: currentLang
+      })
+    });
+
+    removeDuckTypingIndicator();
+
+    if (!response.ok) {
+      const errText = await response.text();
+      throw new Error(`Duck error: ${errText || response.statusText}`);
+    }
+
+    const data = await response.json();
+    duckSessionId = data.session_id;
+
+    if (data.level) {
+      updateDuckLevelUI(data.level);
+    }
+
+    appendDuckMessage('duck', data.response, data.critic_monologue);
+
+    if (data.is_solution_unlocked) {
+      showToast("🎉 Brilliant! You've identified the root cause! You can now run autonomous repair or apply your fix.");
+    }
+
+  } catch (err) {
+    removeDuckTypingIndicator();
+    console.error("Duck Error:", err);
+    appendDuckMessage('duck', `*Quack*... I ran into an issue connecting to my brain: ${err.message}`);
+    showToast(err.message);
+  } finally {
+    if (sendBtn) sendBtn.disabled = false;
+    if (input) input.focus();
+  }
 }

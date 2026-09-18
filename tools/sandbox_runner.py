@@ -37,41 +37,67 @@ class TestResult(BaseModel):
 
 def detect_language(code: str, hint: str = "") -> str:
     """
-    Detect the programming language of a code snippet.
-    Returns: 'typescript', 'javascript', 'python', or 'rust'.
+    Detect the programming language of a code snippet accurately.
+    Prioritizes actual syntax signals from the code to prevent mismatches.
     """
+    clean = code.strip()
+    if not clean and hint:
+        h = hint.lower().strip()
+        if "type" in h or h == "ts": return "typescript"
+        if "java" in h or h == "js": return "javascript"
+        if "py" in h: return "python"
+        if "rust" in h or h == "rs": return "rust"
+        if "cpp" in h or "c++" in h: return "cpp"
+        if "go" in h: return "go"
+        return hint.lower()
+
+    # 1. Strong Python signals (indentation, keywords)
+    py_strong = ["def ", "elif ", "self.", "__init__", "import ", "from ", "print(", "__name__", "None", "True", "False", "in range(", "lambda "]
+    if any(sig in clean for sig in py_strong) and "function " not in clean and "console.log" not in clean and "public static" not in clean and "fn " not in clean:
+        return "python"
+
+    # 2. Strong Java signals
+    java_strong = ["public static void main", "System.out.println", "public class ", "private class ", "package ", "implements ", "throws Exception"]
+    if any(sig in clean for sig in java_strong):
+        return "java"
+
+    # 3. Strong Rust signals
+    rust_strong = ["fn ", "let mut ", "println!", "pub fn ", "impl "]
+    if any(sig in clean for sig in rust_strong):
+        return "rust"
+
+    # 4. Strong C / C++ signals
+    cpp_strong = ["#include <", "std::", "cout <<", "int main(", "printf("]
+    if any(sig in clean for sig in cpp_strong):
+        return "cpp"
+
+    # 5. Strong Go signals
+    go_strong = ["func ", "package main", "fmt.Println", "fmt.Printf"]
+    if any(sig in clean for sig in go_strong):
+        return "go"
+
+    # 6. Strong TypeScript signals
+    ts_strong = ["interface ", "type ", ": string", ": number", ": boolean", ": void", ": any", "as const"]
+    if any(sig in clean for sig in ts_strong):
+        return "typescript"
+
+    # 7. JavaScript signals
+    js_strong = ["function ", "const ", "let ", "var ", "=>", "console.log", "=== ", "!== ", "module.exports"]
+    if any(sig in clean for sig in js_strong):
+        return "javascript"
+
+    # 8. Fallback to hint if provided
     if hint:
         h = hint.lower().strip()
-        if "type" in h or h == "ts":
-            return "typescript"
-        if "java" in h or h == "js":
-            return "javascript"
-        if "py" in h:
-            return "python"
-        if "rust" in h or h == "rs":
-            return "rust"
+        if "type" in h or h == "ts": return "typescript"
+        if "java" in h or h == "js": return "javascript"
+        if "py" in h: return "python"
+        if "rust" in h or h == "rs": return "rust"
+        if "cpp" in h or "c++" in h: return "cpp"
+        if "go" in h: return "go"
+        return hint.lower()
 
-    clean = code.strip()
-
-    # TypeScript / JavaScript signals
-    ts_keywords = ["interface ", "type ", ": string", ": number", ": boolean", ": void", ": any", ": User"]
-    js_keywords = ["function ", "const ", "let ", "var ", "=>", "console.log", "=== ", "!== "]
-
-    for kw in ts_keywords:
-        if kw in clean:
-            return "typescript"
-
-    for kw in js_keywords:
-        if kw in clean:
-            return "javascript"
-
-    # Python signals
-    py_keywords = ["def ", "class ", "import ", "from ", "print(", "__name__", "elif ", "self."]
-    for kw in py_keywords:
-        if kw in clean:
-            return "python"
-
-    return "typescript" if (":" in clean and "{" in clean) else "python"
+    return "python" if ("def " in clean or ":" in clean) else "typescript"
 
 
 def _build_sandbox_test_file(spec_id: str, sandbox_dir: Path) -> Path:

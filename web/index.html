@@ -251,7 +251,7 @@
 
                 <div class="footer-cta-wrap">
                   <span class="footer-badge">Test contract attached</span>
-                  <button class="btn btn-amber-cta" id="runRepairBtn" onclick="triggerRunRepair()">
+                  <div class="cta-button-group"><button class="btn btn-duck-cta" id="runDuckBtn" onclick="triggerDuckDebug()"><span class="btn-icon">🦆</span><span class="btn-text">Duck Debugger</span></button><button class="btn btn-amber-cta" id="runRepairBtn" onclick="triggerRunRepair()">
                     <span class="btn-spinner" id="btnSpinner" style="display:none;"></span>
                     <span class="btn-text" id="btnText">▶ Run repair</span>
                   </button>
@@ -694,5 +694,30 @@
   <!-- Scripts -->
   <script src="fixtures.js"></script>
   <script src="app.js"></script>
+  <!-- Duck Debugger Chat Overlay -->
+  <div id="duckChatOverlay" class="duck-chat-overlay" style="display: none;">
+    <div class="duck-chat-window">
+      <div class="duck-chat-header">
+        <div class="duck-chat-title-group">
+          <span class="duck-chat-title">🦆 Duck Debugger</span>
+          <span class="duck-level-badge" id="duckLevelBadge">Level 1: Conceptual</span>
+        </div>
+        <button class="btn-close-chat" onclick="closeDuckChat()" title="Close chat">×</button>
+      </div>
+      <div class="duck-chat-messages" id="duckChatMessages"></div>
+      <div class="duck-quick-prompts" id="duckQuickPrompts">
+        <button class="quick-prompt-btn" onclick="sendQuickPrompt('What is the main logic error here?')">What is the main logic error?</button>
+        <button class="quick-prompt-btn" onclick="sendQuickPrompt('Give me a structural hint about the loop or condition.')">Give me a structural hint</button>
+        <button class="quick-prompt-btn" onclick="sendQuickPrompt('I am stuck, give me a stronger implementation nudge.')">I'm stuck, bigger hint</button>
+      </div>
+      <div class="duck-chat-input-wrap">
+        <input type="text" id="duckChatInput" placeholder="Ask the duck a question or explain your hypothesis..." onkeypress="if(event.key === 'Enter') sendMessageToDuck();">
+        <button class="btn-send-duck" id="btnSendDuck" onclick="sendMessageToDuck()">Send</button>
+      </div>
+      <div class="duck-chat-footer">
+        <button class="btn-give-up" onclick="giveUpAndRepair()">I give up, let the Agent fix it! ⚡</button>
+      </div>
+    </div>
+  </div>
 </body>
 </html>
