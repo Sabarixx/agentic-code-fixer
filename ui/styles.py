@@ -1082,4 +1082,74 @@ pre *, code * {
     font-family: 'JetBrains Mono', monospace !important;
     color: #f8fafc !important;
 }
+
+/* ==================== DUCK DEBUGGER IN STREAMLIT ==================== */
+.duck-st-card {
+    background: #0d1a21;
+    border: 1px solid #1a323d;
+    border-radius: 12px;
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+}
+
+.duck-st-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid #1a323d;
+}
+
+.duck-st-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #facc15;
+}
+
+.duck-st-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.2rem 0.6rem;
+    border-radius: 9999px;
+    background: rgba(250, 204, 21, 0.15);
+    color: #facc15;
+    border: 1px solid rgba(250, 204, 21, 0.3);
+}
+
+.duck-st-bubble-user {
+    background: #0d6e6e;
+    color: #ffffff;
+    padding: 0.75rem 1rem;
+    border-radius: 10px;
+    margin: 0.5rem 0 0.5rem auto;
+    max-width: 85%;
+    font-size: 0.88rem;
+    line-height: 1.4;
+}
+
+.duck-st-bubble-duck {
+    background: #1e293b;
+    color: #f1f5f9;
+    border: 1px solid #334155;
+    padding: 0.75rem 1rem;
+    border-radius: 10px;
+    margin: 0.5rem auto 0.5rem 0;
+    max-width: 85%;
+    font-size: 0.88rem;
+    line-height: 1.45;
+}
+
+.duck-st-critic {
+    margin-top: 0.4rem;
+    padding: 0.4rem 0.6rem;
+    border-radius: 6px;
+    background: rgba(0, 0, 0, 0.3);
+    border-left: 2px solid #facc15;
+    font-size: 0.78rem;
+    color: #cbd5e1;
+    font-style: italic;
+}
 """

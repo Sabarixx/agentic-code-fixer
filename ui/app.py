@@ -15,6 +15,9 @@ if str(ROOT) not in sys.path:
 import streamlit as st
 from ui.styles import CUSTOM_CSS
 from ui.pipeline_bridge import run_custom_fix
+from agent.prompts.duck_debugger_prompt import DUCK_SYSTEM_PROMPT, format_duck_prompt, SocraticResponse
+from agent.nodes.custom_debugger import get_llm
+from tools.sandbox_runner import detect_language
 
 # Page configuration
 st.set_page_config(
@@ -30,6 +33,14 @@ def md(html_str: str):
 
 # Inject Clean Stylesheet
 st.markdown(f"<style>{CUSTOM_CSS}</style>", unsafe_allow_html=True)
+
+# Initialize Session State
+if "duck_history" not in st.session_state:
+    st.session_state.duck_history = []
+if "duck_level" not in st.session_state:
+    st.session_state.duck_level = 1
+if "active_mode" not in st.session_state:
+    st.session_state.active_mode = "idle"
 
 # -----------------------------------------------------------------------------
 # TOP NAVIGATION (Page 1)
@@ -100,38 +111,33 @@ HERO_HTML = (
     '<div class="step-sub-mono">profile can be null</div>'
     '</div>'
     '</div>'
-    '<span class="step-check-icon">✓</span>'
+    '<span class="step-badge-green">PROVEN</span>'
     '</div>'
     '<div class="trace-preview-step">'
     '<div class="step-left-info">'
     '<span class="step-num-mono">02</span>'
     '<div>'
-    '<div class="step-main-title">Contain the failure</div>'
-    '<div class="step-sub-mono">guarded access + fallback</div>'
+    '<div class="step-main-title">Synthesize narrow patch</div>'
+    '<div class="step-sub-mono">apply safe optional chaining</div>'
     '</div>'
     '</div>'
-    '<span class="step-check-icon">✓</span>'
+    '<span class="step-badge-amber">NARROW</span>'
     '</div>'
-    '<div class="trace-preview-step" style="border-bottom: none;">'
+    '<div class="trace-preview-step">'
     '<div class="step-left-info">'
     '<span class="step-num-mono">03</span>'
     '<div>'
-    '<div class="step-main-title">Prove the change</div>'
-    '<div class="step-sub-mono">2 / 2 tests passing</div>'
+    '<div class="step-main-title">Sandbox assertion proof</div>'
+    '<div class="step-sub-mono">100% assertions green (40/40)</div>'
     '</div>'
     '</div>'
-    '<span class="step-check-icon">✓</span>'
+    '<span class="step-badge-green">VERIFIED</span>'
     '</div>'
-    '<div class="time-stamp-right">1.84s</div>'
-    '</div>'
-    '<div class="floating-confidence-pill">'
-    '<span class="pill-label">confidence</span>'
-    '<span class="pill-value">high <span class="pill-score">/ 0.94</span></span>'
     '</div>'
     '</div>'
     '</div>'
 )
-st.markdown(HERO_HTML, unsafe_allow_html=True)
+md(HERO_HTML)
 
 # -----------------------------------------------------------------------------
 # SECTION 01: THE WORKSPACE (Page 2)
@@ -176,6 +182,42 @@ FIXTURES = {
         "patch_add": "+    left, right = 0, len(arr) - 1\n+    while left <= right:",
         "rerun": "✓ test_binary_search::case_rightmost_elem [PASSED]\n✓ test_binary_search::case_leftmost_elem [PASSED]\n✓ test_binary_search::case_missing_elem [PASSED]",
         "validation": "Validated • Confidence 0.98\nTermination proof satisfied. Complexity O(log N) preserved.",
+    },
+    "JavaScript": {
+        "file": "discount_calculator.js",
+        "code": """function calculateDiscount(price, discount) {
+  if (discount > 100) return 0;
+  return price - price * (discount / 100);
+}""",
+        "tests": """console.assert(calculateDiscount(100, 20) === 80, '20% off $100 should be $80');
+console.assert(calculateDiscount(50, 0) === 50, '0% off $50 should be $50');""",
+        "analysis": "→ Boundary Check: discount validation\n→ Inferred semantics: discount percentage arithmetic",
+        "diagnosis": "Logical edge cases for negative numbers or missing bounds.\nGuard added for discount ranges.",
+        "patch_del": "-  if (discount > 100) return 0;",
+        "patch_add": "+  if (discount < 0 || discount > 100) return price;",
+        "rerun": "✓ Test 1: standard discount applied [0.1ms]\n✓ Test 2: zero discount boundary [0.1ms]",
+        "validation": "Validated • Confidence 0.96\nAssertions passed in JS execution frame.",
+    },
+    "Rust": {
+        "file": "safe_division.rs",
+        "code": """pub fn safe_divide(numerator: f64, denominator: f64) -> Option<f64> {
+    if denominator == 0.0 {
+        None
+    } else {
+        Some(numerator / denominator)
+    }
+}""",
+        "tests": """#[test]
+fn test_safe_divide() {
+    assert_eq!(safe_divide(10.0, 2.0), Some(5.0));
+    assert_eq!(safe_divide(10.0, 0.0), None);
+}""",
+        "analysis": "→ Option<T> Type Safety: Zero division guard in Rust\n→ IEEE 754 Floating point boundary analysis",
+        "diagnosis": "Division by zero returns Option::None safely.",
+        "patch_del": "// Verified safe division implementation",
+        "patch_add": "// Verified safe division implementation",
+        "rerun": "✓ test_safe_divide [PASSED 0.1ms]",
+        "validation": "Validated • Confidence 0.99\nRust compiler and borrow checker satisfied.",
     }
 }
 
@@ -205,7 +247,7 @@ col_select, _ = st.columns([1.5, 3])
 with col_select:
     selected_lang = st.selectbox(
         "Select Language",
-        options=["TypeScript", "Python"],
+        options=list(FIXTURES.keys()),
         index=0,
         label_visibility="collapsed",
     )
@@ -249,23 +291,130 @@ with col_left:
         key="tests_editor_main",
     )
 
-    col_chk, col_btn = st.columns([1.2, 1])
+    col_chk, col_duck, col_btn = st.columns([1.1, 1.0, 1.0])
     with col_chk:
         st.checkbox("Simulate a validation edge case", value=True, key="edge_case_chk")
+    with col_duck:
+        duck_btn_clicked = st.button("🦆 Duck Debugger", use_container_width=True, key="duck_debug_btn")
     with col_btn:
         run_clicked = st.button("▶ Run repair", use_container_width=True, key="run_repair_main_btn")
+
+if duck_btn_clicked:
+    st.session_state.active_mode = "duck"
+    if not st.session_state.duck_history:
+        st.session_state.duck_history = [{
+            "role": "duck",
+            "content": "Quack! 🦆 I'm your Socratic debugging partner. I won't give you the answer right away, but I'll guide you step-by-step to discover the bug yourself.\n\nTake a look at your code and test suite. What do you think might be going wrong?",
+            "critic": None
+        }]
+        st.session_state.duck_level = 1
+
+if run_clicked:
+    st.session_state.active_mode = "repair"
 
 with col_right:
     md("""
     <div class="ide-window-bar">
-        <span style="font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; font-weight: 700; color: #e59b56;">⚡ REPAIR LOOP</span>
+        <span style="font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; font-weight: 700; color: #e59b56;">⚡ REPAIR & SOCRATIC LOOP</span>
         <span style="font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; color: #94a3b8;">AGENT OUTPUT</span>
     </div>
     """)
 
     output_box = st.empty()
 
-    if not run_clicked:
+    if st.session_state.active_mode == "duck":
+        level_names = {
+            1: "Level 1: Conceptual",
+            2: "Level 2: Structural",
+            3: "Level 3: Implementation"
+        }
+        curr_lvl_name = level_names.get(st.session_state.duck_level, f"Level {st.session_state.duck_level}")
+
+        output_box.empty()
+        md(f"""
+        <div class="duck-st-card">
+            <div class="duck-st-header">
+                <span class="duck-st-title">🦆 Socratic Duck Debugger</span>
+                <span class="duck-st-badge">{curr_lvl_name}</span>
+            </div>
+        """)
+
+        # Render conversation history
+        for msg in st.session_state.duck_history:
+            if msg["role"] == "user":
+                st.markdown(f'<div class="duck-st-bubble-user"><strong>You:</strong><br>{msg["content"]}</div>', unsafe_allow_html=True)
+            else:
+                duck_html = f'<div class="duck-st-bubble-duck"><strong>🦆 Duck:</strong><br>{msg["content"]}'
+                if msg.get("critic"):
+                    duck_html += f'<div class="duck-st-critic">💡 <em>Analysis:</em> {msg["critic"]}</div>'
+                duck_html += '</div>'
+                st.markdown(duck_html, unsafe_allow_html=True)
+
+        md('</div>')
+
+        # Quick prompt buttons
+        q1, q2, q3 = st.columns(3)
+        quick_msg = None
+        if q1.button("Logic Error?", key="q1_btn", use_container_width=True):
+            quick_msg = "What is the main logic error in this code?"
+        if q2.button("Structural Hint", key="q2_btn", use_container_width=True):
+            quick_msg = "Give me a structural hint about the conditions or loops."
+        if q3.button("I'm Stuck", key="q3_btn", use_container_width=True):
+            quick_msg = "I'm stuck, can you give me a stronger implementation nudge?"
+
+        # Chat input or quick prompt handler
+        user_prompt_val = st.chat_input("Ask the duck a question or explain your hypothesis...") or quick_msg
+
+        if user_prompt_val:
+            st.session_state.duck_history.append({"role": "user", "content": user_prompt_val, "critic": None})
+            
+            # Detect exact language
+            code_lang = detect_language(source_code, hint=selected_lang.lower())
+            
+            # Frustration check
+            frustration_keywords = ["stupid", "just tell me", "give up", "im stuck", "i don't get it", "i dont get it"]
+            if any(kw in user_prompt_val.lower() for kw in frustration_keywords):
+                st.session_state.duck_level = min(3, st.session_state.duck_level + 1)
+            
+            # Format and invoke structured Socratic prompt
+            duck_prompt = format_duck_prompt(
+                code=source_code,
+                tests=tests_code,
+                user_message=user_prompt_val,
+                history=[{"role": m["role"], "content": m["content"]} for m in st.session_state.duck_history[:-1]],
+                level=st.session_state.duck_level,
+                language=code_lang
+            )
+            
+            try:
+                llm = get_llm()
+                structured_llm = llm.with_structured_output(SocraticResponse)
+                response: SocraticResponse = structured_llm.invoke([
+                    ("system", DUCK_SYSTEM_PROMPT),
+                    ("human", duck_prompt),
+                ])
+                st.session_state.duck_level = response.current_level
+                st.session_state.duck_history.append({
+                    "role": "duck",
+                    "content": response.response_text,
+                    "critic": response.critic_monologue
+                })
+                if response.is_solution_unlocked:
+                    st.toast("🎉 Brilliant! You've discovered the root cause!")
+            except Exception as e:
+                st.session_state.duck_history.append({
+                    "role": "duck",
+                    "content": f"Quack... I ran into an issue thinking: {str(e)}",
+                    "critic": None
+                })
+            st.rerun()
+
+        # Give up and repair button
+        if st.button("I give up, let the Agent fix it! ⚡", key="duck_give_up_action_btn", use_container_width=True):
+            st.session_state.active_mode = "repair"
+            st.rerun()
+
+    elif st.session_state.active_mode != "repair":
         output_box.markdown(
             textwrap.dedent("""
             <div style="background: #0f2229; border: 1px solid #1a323d; border-top: none; border-radius: 0 0 10px 10px; min-height: 380px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 2rem;">
@@ -273,7 +422,7 @@ with col_right:
                     🗂
                 </div>
                 <h4 style="color: #ffffff; margin-bottom: 0.35rem; font-size: 1.05rem;">The agent is waiting for a failure</h4>
-                <p style="color: #64748b; font-size: 0.88rem; max-width: 300px;">Run the fixture above to watch a transparent repair session.</p>
+                <p style="color: #64748b; font-size: 0.88rem; max-width: 300px;">Click <b>▶ Run repair</b> to watch autonomous self-healing, or click <b>🦆 Duck Debugger</b> for interactive Socratic guidance.</p>
             </div>
             """).strip(),
             unsafe_allow_html=True,
