@@ -847,6 +847,48 @@ button, input, select, textarea {
   padding: 1.1rem 1.35rem 1rem;
   border-bottom: 1px solid var(--dark-border);
   background: #0e1e26;
+  position: relative;
+}
+
+/* Pulsing Animated Progress Bar across Top of Header (Isolated Animation Element) */
+.repair-progress-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.04);
+  overflow: hidden;
+  opacity: 0;
+  transition: opacity 0.35s ease;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.repair-progress-bar.active {
+  opacity: 1;
+}
+
+.progress-bar-track {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.progress-bar-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  background: linear-gradient(90deg, #e59b56 0%, #2ec4b6 50%, #5eead4 80%, #e59b56 100%);
+  background-size: 200% 100%;
+  animation: progressShimmer 1.8s infinite linear;
+}
+
+@keyframes progressShimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }
 
 .repair-title-wrap {

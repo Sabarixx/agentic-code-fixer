@@ -260,15 +260,30 @@
             </div>
 
           </div>
+        </div>
 
-          <!-- Right Column: Repair Loop Stepper & Agent Output -->
-          <div class="ide-right-pane">
+        <!-- Right Column: Repair Loop Stepper & Agent Output -->
+        <div class="ide-right-pane">
             
             <!-- Repair Loop Header & Stepper -->
             <div class="repair-loop-header">
+              <!-- Live Pulsing Progress Bar -->
+              <div class="repair-progress-bar" id="repairProgressBar" aria-hidden="true">
+                <div class="progress-bar-track">
+                  <div class="progress-bar-fill" id="progressBarFill"></div>
+                </div>
+              </div>
+
               <div class="repair-title-wrap">
-                <span class="bolt-icon">⚡</span>
-                <span class="repair-title">REPAIR LOOP</span>
+                <div class="repair-title-left">
+                  <span class="bolt-icon">⚡</span>
+                  <span class="repair-title">REPAIR LOOP</span>
+                </div>
+                <!-- Live Agent Status Indicator -->
+                <div class="agent-live-status-pill" id="agentLiveStatus">
+                  <span class="status-pulse-dot" id="statusDot"></span>
+                  <span class="status-text" id="statusText">Ready</span>
+                </div>
               </div>
 
               <div class="stepper-bar">
@@ -311,8 +326,14 @@
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"></path></svg>
                   </span>
                   <span class="pane-title">CORRECTED CODE</span>
+                  <span class="stream-typing-indicator" id="streamingBadge" style="display: none;">
+                    <span class="typing-dot"></span> STREAMING
+                  </span>
                 </div>
-                <button class="btn-micro" onclick="copyCorrectedCode()">Copy Code</button>
+                <div class="header-action-group">
+                  <button class="btn-micro" id="btnSkipTypewriter" style="display: none;" onclick="skipTypewriterAnimation()">Skip</button>
+                  <button class="btn-micro" onclick="copyCorrectedCode()">Copy Code</button>
+                </div>
               </div>
               <div class="code-editor-wrapper">
                 <div class="line-numbers" id="correctedLineNumbers"></div>

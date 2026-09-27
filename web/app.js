@@ -113,9 +113,33 @@ function resetCurrentFixture() {
 /* ==================== DYNAMIC CUSTOM CODE ANALYZER ==================== */
 // Removed analyzeCustomCode mock function. Logic now handled by Backend API.
 
+/* ==================== PROGRESS BAR & CONCURRENCY CONTROLS ==================== */
+function setProgressBar(active) {
+  const progBar = document.getElementById('repairProgressBar');
+  if (progBar) {
+    if (active) progBar.classList.add('active');
+    else progBar.classList.remove('active');
+  }
+}
+
+function setConcurrencyLock(locked) {
+  isRunning = locked;
+  const repairBtn = document.getElementById('runRepairBtn');
+  const duckBtn = document.getElementById('runDuckBtn');
+
+  if (repairBtn) {
+    repairBtn.disabled = locked;
+  }
+
+  if (duckBtn) {
+    duckBtn.disabled = locked;
+  }
+}
+
 /* ==================== REPAIR LOOP EXECUTION ENGINE ==================== */
 function resetStepper() {
-  isRunning = false;
+  setConcurrencyLock(false);
+  setProgressBar(false);
   currentStep = 0;
 
   for (let i = 1; i <= 5; i++) {
@@ -145,7 +169,7 @@ function resetStepper() {
 
 async function triggerRunRepair() {
   if (isRunning) return;
-  isRunning = true;
+  setConcurrencyLock(true);
 
   const sourceEditor = document.getElementById('sourceEditor');
   const testsEditor = document.getElementById('testsEditor');
@@ -170,114 +194,197 @@ async function triggerRunRepair() {
   if (btnSpinner) btnSpinner.style.display = 'inline-block';
   if (btnText) btnText.innerText = 'Repairing...';
   if (correctedBox) correctedBox.style.display = 'none';
+  if (tools) tools.style.display = 'none';
 
-  try {
-    console.log("Requesting repair for:", { source: currentSource, tests: currentTests });
+  setProgressBar(true);
+  setStepState(1, 'active');
 
-    const apiUrl = `${getApiBaseUrl()}/repair`;
-    const response = await fetch(apiUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        code: currentSource,
-        tests: currentTests,
-        lang: currentLang
-      })
-    });
+  const requestPayload = {
+    code: currentSource,
+    tests: currentTests,
+    lang: currentLang
+  };
 
-    if (!response.ok) {
-        const errText = await response.text();
-        throw new Error(`API repair failed: ${errText}`);
+  const stageMap = {
+    'diagnosing': { step: 1, nextStep: 2, phase: 'ANALYSIS', class: 'mint' },
+    'generating_tests': { step: 2, nextStep: 3, phase: 'DIAGNOSIS', class: 'coral' },
+    'fixing': { step: 3, nextStep: 4, phase: 'PATCH SYNTHESIS', class: 'amber' },
+    'testing': { step: 4, nextStep: 5, phase: 'SANDBOX RE-RUN', class: 'mint' },
+    'done': { step: 5, nextStep: 5, phase: 'VERIFICATION & VALIDATION', class: 'mint' }
+  };
+
+  let finalCorrectedCode = "";
+  const completedSteps = new Set();
+
+  const handleStep = async (step) => {
+    const stage = step.stage;
+    const config = stageMap[stage] || { step: 5, nextStep: 5, phase: 'VALIDATION', class: 'mint' };
+
+    if (stage === 'diagnosing') {
+      setStepState(1, 'completed');
+      setStepState(2, 'active');
+      completedSteps.add(1);
+    } else if (stage === 'generating_tests') {
+      setStepState(2, 'completed');
+      setStepState(3, 'active');
+      completedSteps.add(2);
+    } else if (stage === 'fixing') {
+      setStepState(3, 'active');
+    } else if (stage === 'testing') {
+      setStepState(3, 'completed');
+      setStepState(4, 'active');
+      completedSteps.add(3);
+    } else if (stage === 'done') {
+      setStepState(4, 'completed');
+      setStepState(5, 'completed');
+      completedSteps.add(4);
+      completedSteps.add(5);
     }
 
-    const repairSteps = await response.json();
-    console.log("API Response received:", repairSteps);
+    if (step.corrected_code) {
+      finalCorrectedCode = step.corrected_code;
+      customPatchedCode = step.corrected_code;
 
-    const stageMap = {
-      'diagnosing': { step: 1, phase: 'ANALYSIS', class: 'mint' },
-      'generating_tests': { step: 2, phase: 'DIAGNOSIS', class: 'coral' },
-      'fixing': { step: 3, phase: 'PATCH SYNTHESIS', class: 'amber' },
-      'testing': { step: 4, phase: 'SANDBOX RE-RUN', class: 'mint' },
-      'done': { step: 5, phase: 'VERIFICATION & VALIDATION', class: 'mint' }
-    };
-
-    let finalCorrectedCode = "";
-    const completedSteps = new Set();
-
-    for (const step of repairSteps) {
-      const stage = step.stage;
-      const config = stageMap[stage] || { step: 5, phase: 'VALIDATION', class: 'mint' };
-
-      if (!completedSteps.has(config.step)) {
-        setStepState(config.step, 'active');
-        await sleep(350);
-      }
-
-      if (stage === 'done' || step.corrected_code) {
-        finalCorrectedCode = step.corrected_code;
-      }
-
-      let cardData = {
-        stepNum: String(config.step).padStart(2, '0'),
-        phaseName: config.phase,
-        phaseClass: config.class,
-        badge: "Processing...",
-        content: "Analyzing code..."
-      };
-
-      if (stage === 'diagnosing') {
-        cardData.badge = step.bug_category || "Diagnosis";
-        cardData.content = `Root Cause: ${step.root_cause || 'Unknown'}\nSummary: ${step.summary || 'N/A'}`;
-      } else if (stage === 'generating_tests') {
-        cardData.badge = "Test Contract";
-        cardData.content = step.generated_tests || "Synthesizing test specs...";
-      } else if (stage === 'fixing') {
-        cardData.badge = `Iteration ${step.iteration || 1}`;
-        cardData.content = "Generating optimized candidate patch...";
-      } else if (stage === 'testing') {
-        const results = step.test_results || {};
-        cardData.badge = `Tests: ${results.passed || 0}/${results.total || 0} Passed`;
-        cardData.content = results.failure_details && results.failure_details.length > 0 ? results.failure_details.join('\n') : "All tests passing in sandbox.";
-      } else if (stage === 'done') {
-        cardData.badge = `Status: ${step.status || 'Verified'}`;
-        cardData.content = `Repaired in ${step.iterations_taken || 1} attempts. Safety proof confirmed.`;
-      }
-
-      appendTraceCard(cardData);
-      setStepState(config.step, 'completed');
-      completedSteps.add(config.step);
-    }
-
-    // Ensure all steps up to 5 are stably completed once
-    for (let i = 1; i <= 5; i++) {
-      setStepState(i, 'completed');
-    }
-
-    console.log("Final corrected code to display:", finalCorrectedCode);
-
-    if (finalCorrectedCode) {
       if (correctedBox) correctedBox.style.display = 'block';
       if (correctedEditor) {
-        correctedEditor.value = finalCorrectedCode;
+        correctedEditor.value = step.corrected_code;
         updateEditorLines('correctedEditor', 'correctedLineNumbers');
       }
-    } else {
-      console.warn("No corrected code was found in the API response.");
-      showToast("Repair completed, but no code was generated.");
     }
 
-    if (tools) tools.style.display = 'flex';
-    if (btnSpinner) btnSpinner.style.display = 'none';
-    if (btnText) btnText.innerText = '✓ Verified & Ready';
-    showToast("Repair loop completed successfully.");
+    let cardData = {
+      stepNum: String(config.step).padStart(2, '0'),
+      phaseName: config.phase,
+      phaseClass: config.class,
+      badge: "Processing...",
+      content: "Analyzing code..."
+    };
 
-  } catch (err) {
-    console.error("Repair Loop Error:", err);
-    showToast(`Error: ${err.message}`);
-    resetStepper();
+    if (stage === 'diagnosing') {
+      cardData.badge = step.bug_category || "Diagnosis";
+      cardData.content = `Root Cause: ${step.root_cause || 'Unknown'}\nSummary: ${step.summary || 'N/A'}`;
+      if (step.edge_cases && step.edge_cases.length > 0) {
+        cardData.content += `\nEdge Cases: ${step.edge_cases.join(', ')}`;
+      }
+    } else if (stage === 'generating_tests') {
+      cardData.badge = "Test Contract";
+      cardData.content = step.generated_tests || "Synthesizing test specs...";
+    } else if (stage === 'fixing') {
+      cardData.badge = `Iteration ${step.iteration || 1}`;
+      cardData.content = "Generating candidate implementation patch...";
+    } else if (stage === 'testing') {
+      const results = step.test_results || {};
+      const passed = results.passed || 0;
+      const total = results.total || 0;
+      cardData.badge = `Tests: ${passed}/${total} Passed`;
+      cardData.content = results.failure_details && results.failure_details.length > 0
+        ? results.failure_details.join('\n')
+        : "All unit assertions passing in sandbox.";
+    } else if (stage === 'done') {
+      cardData.badge = `Status: ${step.status || 'Verified'}`;
+      cardData.content = `Repaired in ${step.iterations_taken || 1} attempts. Safety proof confirmed.`;
+      if (step.changelog && step.changelog.length > 0) {
+        cardData.content += `\n\nChangelog:\n${step.changelog.map(c => `• ${c}`).join('\n')}`;
+      }
+    }
+
+    appendTraceCard(cardData);
+  };
+
+  let connectionAttempts = 0;
+  const maxAttempts = 2;
+  let receivedAnyEvent = false;
+
+  while (connectionAttempts < maxAttempts) {
+    connectionAttempts++;
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 65000);
+
+    try {
+      const streamUrl = `${getApiBaseUrl()}/repair/stream`;
+      const response = await fetch(streamUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'text/event-stream'
+        },
+        body: JSON.stringify(requestPayload),
+        signal: controller.signal
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        const errText = await response.text();
+        throw new Error(`Server returned HTTP ${response.status}: ${errText}`);
+      }
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let streamBuffer = '';
+
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+
+        const chunkText = decoder.decode(value, { stream: true });
+        streamBuffer += chunkText;
+
+        const eventBlocks = streamBuffer.split('\n\n');
+        streamBuffer = eventBlocks.pop() || '';
+
+        for (const block of eventBlocks) {
+          const lines = block.split('\n');
+          for (const line of lines) {
+            const trimmed = line.trim();
+            if (trimmed.startsWith('data:')) {
+              const rawData = trimmed.replace(/^data:\s*/, '').trim();
+              if (rawData === '[DONE]') continue;
+
+              try {
+                const parsedStep = JSON.parse(rawData);
+                receivedAnyEvent = true;
+                await handleStep(parsedStep);
+              } catch (parseErr) {
+                console.warn("Could not parse SSE JSON line:", rawData, parseErr);
+              }
+            }
+          }
+        }
+      }
+
+      break;
+
+    } catch (streamErr) {
+      clearTimeout(timeoutId);
+      console.warn(`SSE stream attempt ${connectionAttempts} failed:`, streamErr);
+
+      if (connectionAttempts < maxAttempts && !receivedAnyEvent) {
+        showToast("Network hiccup detected. Reconnecting stream automatically... ⚡");
+        await sleep(1200);
+      } else {
+        setProgressBar(false);
+        showToast(`Repair Stream Error: ${streamErr.message}`);
+        setConcurrencyLock(false);
+        if (btnSpinner) btnSpinner.style.display = 'none';
+        if (btnText) btnText.innerText = '▶ Retry repair';
+        return;
+      }
+    }
   }
 
-  isRunning = false;
+  setProgressBar(false);
+
+  for (let i = 1; i <= 5; i++) {
+    setStepState(i, 'completed');
+  }
+
+  if (tools) tools.style.display = 'flex';
+  if (btnSpinner) btnSpinner.style.display = 'none';
+  if (btnText) btnText.innerText = '✓ Verified & Ready';
+
+  setConcurrencyLock(false);
+  showToast("Repair loop completed successfully.");
 }
 
 function setStepState(stepNum, state) {
@@ -563,7 +670,7 @@ function sendQuickPrompt(promptText) {
 
 async function sendMessageToDuck() {
   const input = document.getElementById('duckChatInput');
-  const userMsg = input.value.trim();
+  const userMsg = input ? input.value.trim() : '';
   if (!userMsg) return;
 
   const sourceEditor = document.getElementById('sourceEditor');
@@ -575,13 +682,22 @@ async function sendMessageToDuck() {
   const sendBtn = document.getElementById('btnSendDuck');
   if (sendBtn) sendBtn.disabled = true;
 
+  // Concurrency Guard
+  setConcurrencyLock(true);
   showDuckTypingIndicator();
 
+  let assistantBubble = null;
+  let accumulatedText = "";
+  let criticMonologue = null;
+
   try {
-    const apiUrl = `${getApiBaseUrl()}/duck_chat`;
-    const response = await fetch(apiUrl, {
+    const streamUrl = `${getApiBaseUrl()}/duck_chat/stream`;
+    const response = await fetch(streamUrl, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'text/event-stream'
+      },
       body: JSON.stringify({
         session_id: duckSessionId,
         code: sourceEditor ? sourceEditor.value : "",
@@ -591,33 +707,100 @@ async function sendMessageToDuck() {
       })
     });
 
-    removeDuckTypingIndicator();
-
     if (!response.ok) {
       const errText = await response.text();
-      throw new Error(`Duck error: ${errText || response.statusText}`);
+      throw new Error(`Duck error (${response.status}): ${errText}`);
     }
 
-    const data = await response.json();
-    duckSessionId = data.session_id;
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let streamBuffer = '';
 
-    if (data.level) {
-      updateDuckLevelUI(data.level);
-    }
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
 
-    appendDuckMessage('duck', data.response, data.critic_monologue);
+      streamBuffer += decoder.decode(value, { stream: true });
+      const blocks = streamBuffer.split('\n\n');
+      streamBuffer = blocks.pop() || '';
 
-    if (data.is_solution_unlocked) {
-      showToast("🎉 Brilliant! You've identified the root cause! You can now run autonomous repair or apply your fix.");
+      for (const block of blocks) {
+        const lines = block.split('\n');
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (trimmed.startsWith('data:')) {
+            const rawData = trimmed.replace(/^data:\s*/, '').trim();
+            if (rawData === '[DONE]') continue;
+
+            try {
+              const data = JSON.parse(rawData);
+
+              if (data.stage === 'pondering') {
+                if (data.level) updateDuckLevelUI(data.level);
+              } else if (data.stage === 'critic') {
+                criticMonologue = data.critic_monologue;
+              } else if (data.stage === 'chunk') {
+                removeDuckTypingIndicator();
+
+                // Incrementally stream chunk into bubble
+                if (!assistantBubble) {
+                  const container = document.getElementById('duckChatMessages');
+                  assistantBubble = document.createElement('div');
+                  assistantBubble.className = 'chat-bubble duck';
+                  if (container) {
+                    container.appendChild(assistantBubble);
+                  }
+                }
+
+                accumulatedText += data.text;
+                let html = formatMarkdownSnippet(accumulatedText);
+                if (criticMonologue) {
+                  html += `<div class="critic-monologue-box">💡 <em>Internal analysis:</em> ${formatMarkdownSnippet(criticMonologue)}</div>`;
+                }
+                assistantBubble.innerHTML = html;
+
+                const container = document.getElementById('duckChatMessages');
+                if (container) container.scrollTop = container.scrollHeight;
+
+              } else if (data.stage === 'done') {
+                duckSessionId = data.session_id;
+                if (data.level) updateDuckLevelUI(data.level);
+
+                if (!assistantBubble) {
+                  removeDuckTypingIndicator();
+                  appendDuckMessage('duck', data.response, data.critic_monologue);
+                } else {
+                  let finalHtml = formatMarkdownSnippet(data.response);
+                  if (data.critic_monologue) {
+                    finalHtml += `<div class="critic-monologue-box">💡 <em>Internal analysis:</em> ${formatMarkdownSnippet(data.critic_monologue)}</div>`;
+                  }
+                  assistantBubble.innerHTML = finalHtml;
+                }
+
+                if (data.is_solution_unlocked) {
+                  showToast("🎉 Brilliant! You've identified the root cause! You can now run autonomous repair or apply your fix.");
+                }
+              } else if (data.stage === 'error') {
+                throw new Error(data.error || "Unknown stream error");
+              }
+            } catch (pErr) {
+              console.warn("Error parsing duck stream line:", rawData, pErr);
+            }
+          }
+        }
+      }
     }
 
   } catch (err) {
     removeDuckTypingIndicator();
-    console.error("Duck Error:", err);
+    console.error("Duck Stream Error:", err);
     appendDuckMessage('duck', `*Quack*... I ran into an issue connecting to my brain: ${err.message}`);
-    showToast(err.message);
+    showToast(`Duck Error: ${err.message}`);
   } finally {
+    removeDuckTypingIndicator();
+    setConcurrencyLock(false);
     if (sendBtn) sendBtn.disabled = false;
     if (input) input.focus();
   }
 }
+

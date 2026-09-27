@@ -1,11 +1,14 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from typing import Optional, List, Any, Dict
 import uvicorn
 import sys
 import uuid
+import json
+import asyncio
 from pathlib import Path
 
 # Ensure root is in sys.path so 'ui' and 'agent' packages are discoverable
@@ -66,6 +69,62 @@ async def repair_code(request: RepairRequest):
         ))
 
         return results
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/repair/stream")
+async def repair_code_stream(request: RepairRequest):
+    """
+    Non-blocking Server-Sent Events (SSE) streaming endpoint for autonomous repair.
+    Yields intermediate node states (diagnosing, generating_tests, fixing, testing, done)
+    incrementally to eliminate UI freezes and sudden code flashes.
+    """
+    try:
+        input_hint = request.language or request.lang or ""
+        target_lang = detect_language(request.code, hint=input_hint)
+
+        async def event_generator():
+            queue: asyncio.Queue = asyncio.Queue()
+            loop = asyncio.get_running_loop()
+
+            def worker():
+                try:
+                    for step in run_custom_fix(
+                        code=request.code,
+                        language=target_lang,
+                        expected_behavior=request.expected_behavior or "",
+                        error_message=request.error_message or "",
+                        user_tests=request.user_tests or request.tests or "",
+                    ):
+                        loop.call_soon_threadsafe(queue.put_nowait, ("event", step))
+                    loop.call_soon_threadsafe(queue.put_nowait, ("done", None))
+                except Exception as ex:
+                    loop.call_soon_threadsafe(queue.put_nowait, ("error", str(ex)))
+
+            # Execute synchronous generator in worker thread so event loop remains free
+            loop.run_in_executor(None, worker)
+
+            while True:
+                msg_type, payload = await queue.get()
+                if msg_type == "event":
+                    yield f"data: {json.dumps(payload)}\n\n"
+                elif msg_type == "error":
+                    yield f"data: {json.dumps({'stage': 'error', 'error': payload})}\n\n"
+                    break
+                elif msg_type == "done":
+                    yield "data: [DONE]\n\n"
+                    break
+
+        return StreamingResponse(
+            event_generator(),
+            media_type="text/event-stream",
+            headers={
+                "Cache-Control": "no-cache",
+                "Connection": "keep-alive",
+                "X-Accel-Buffering": "no",
+                "Access-Control-Allow-Origin": "*",
+            },
+        )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -132,11 +191,100 @@ async def duck_chat(request: DuckChatRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.post("/duck_chat/stream")
+async def duck_chat_stream(request: DuckChatRequest):
+    """
+    Non-blocking SSE streaming endpoint for Duck Debugger.
+    Streams immediate pondering indicator, internal critic monologue, and response chunks.
+    """
+    try:
+        input_hint = request.language or request.lang or ""
+        target_lang = detect_language(request.code, hint=input_hint)
+
+        session_id = request.session_id or str(uuid.uuid4())
+        if session_id not in duck_sessions:
+            duck_sessions[session_id] = {
+                "history": [],
+                "level": 1,
+                "language": target_lang
+            }
+
+        session = duck_sessions[session_id]
+        session["language"] = target_lang
+
+        frustration_keywords = ["stupid", "just tell me", "give up", "i dont get it", "im stuck"]
+        is_frustrated = any(kw in request.user_message.lower() for kw in frustration_keywords)
+        turn_count = len([m for m in session["history"] if m["role"] == "user"])
+        if is_frustrated or (turn_count > 0 and turn_count % 2 == 0):
+            session["level"] = min(3, session["level"] + 1)
+
+        user_prompt = format_duck_prompt(
+            code=request.code,
+            tests=request.tests,
+            user_message=request.user_message,
+            history=session["history"],
+            level=session["level"],
+            language=target_lang
+        )
+
+        async def duck_event_generator():
+            # Immediate feedback so UI knows request is received
+            yield f"data: {json.dumps({'stage': 'pondering', 'session_id': session_id, 'level': session['level']})}\n\n"
+
+            loop = asyncio.get_running_loop()
+
+            def invoke_llm():
+                llm = get_llm()
+                structured_llm = llm.with_structured_output(SocraticResponse)
+                messages = [
+                    ("system", DUCK_SYSTEM_PROMPT),
+                    ("human", user_prompt),
+                ]
+                return structured_llm.invoke(messages)
+
+            try:
+                response: SocraticResponse = await loop.run_in_executor(None, invoke_llm)
+
+                session["history"].append({"role": "user", "content": request.user_message})
+                session["history"].append({"role": "assistant", "content": response.response_text})
+
+                if response.critic_monologue:
+                    yield f"data: {json.dumps({'stage': 'critic', 'critic_monologue': response.critic_monologue})}\n\n"
+
+                # Stream response tokens/words for smooth incremental rendering
+                words = response.response_text.split(" ")
+                chunk_size = 2
+                for i in range(0, len(words), chunk_size):
+                    chunk = " ".join(words[i:i + chunk_size])
+                    if i + chunk_size < len(words):
+                        chunk += " "
+                    yield f"data: {json.dumps({'stage': 'chunk', 'text': chunk})}\n\n"
+                    await asyncio.sleep(0.015)
+
+                yield f"data: {json.dumps({'stage': 'done', 'session_id': session_id, 'response': response.response_text, 'level': response.current_level, 'is_solution_unlocked': response.is_solution_unlocked, 'critic_monologue': response.critic_monologue})}\n\n"
+                yield "data: [DONE]\n\n"
+            except Exception as err:
+                yield f"data: {json.dumps({'stage': 'error', 'error': str(err)})}\n\n"
+
+        return StreamingResponse(
+            duck_event_generator(),
+            media_type="text/event-stream",
+            headers={
+                "Cache-Control": "no-cache",
+                "Connection": "keep-alive",
+                "X-Accel-Buffering": "no",
+                "Access-Control-Allow-Origin": "*",
+            },
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 # Mount static web UI files so root "/" serves index.html and web assets directly
 WEB_DIR = ROOT / "web"
 if WEB_DIR.exists():
     app.mount("/", StaticFiles(directory=str(WEB_DIR), html=True), name="web")
 
 if __name__ == "__main__":
-    # Run server on port 8000
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    import os
+    port = int(os.environ.get("PORT", 8000))
+    uvicorn.run(app, host="0.0.0.0", port=port)
