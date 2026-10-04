@@ -62,15 +62,62 @@ def validate_syntax_polyglot(code: str, language: str) -> tuple[bool, str]:
 
 
 def are_tests_compatible(code: str, tests: str) -> bool:
-    """Verify if user-provided tests match symbols or intent in the submitted code."""
-    if not tests or not tests.strip():
+    """
+    Verify if user-provided tests match symbols or intent in the submitted code.
+    Prevents stale fixture tests (e.g. binary_search assertions) from contaminating
+    unrelated user code (e.g. print statements, custom scripts, or different functions).
+    """
+    if not tests or not tests.strip() or not code or not code.strip():
         return False
-    # Find all function/class/variable identifiers in the source code
-    defined = set(re.findall(r"\b(?:def|function|class|const|let|var)\s+([a-zA-Z_]\w*)", code))
-    if not defined:
-        return True  # Top-level script or non-standard syntax, keep tests
-    # Check if tests reference at least one defined symbol
-    return any(name in tests for name in defined)
+
+    code_clean = code.strip()
+    tests_clean = tests.strip()
+
+    # Built-in language keywords and test framework identifiers to ignore
+    builtin_keywords = {
+        # Python
+        "assert", "def", "class", "import", "from", "return", "if", "elif", "else",
+        "for", "while", "in", "is", "not", "and", "or", "print", "len", "range",
+        "int", "str", "float", "bool", "list", "dict", "set", "tuple", "True", "False",
+        "None", "lambda", "with", "as", "pass", "raise", "except", "try", "finally",
+        # JS / TS
+        "expect", "it", "test", "describe", "toBe", "toEqual", "toBeTruthy", "toBeFalsy",
+        "toThrow", "function", "const", "let", "var", "console", "log", "new", "null",
+        "undefined", "true", "false", "beforeEach", "afterEach", "beforeAll", "afterAll",
+        # Rust
+        "fn", "pub", "struct", "impl", "assert_eq", "assert_ne", "Some", "None", "Option", "Result",
+        # General
+        "main", "__name__", "self", "this",
+    }
+
+    # Find functions/invocations called inside tests: foo(...)
+    test_invocations = set(re.findall(r"\b([a-zA-Z_]\w*)\s*\(", tests_clean))
+    custom_tested_symbols = {
+        sym for sym in test_invocations
+        if sym not in builtin_keywords and not sym.startswith("test_")
+    }
+
+    # Find all identifier tokens present anywhere in the code
+    code_tokens = set(re.findall(r"\b[a-zA-Z_]\w*\b", code_clean))
+
+    # If tests explicitly call specific custom functions (e.g. binary_search(...)),
+    # at least one of those called functions MUST be present in the user's code.
+    if custom_tested_symbols:
+        return any(sym in code_tokens for sym in custom_tested_symbols)
+
+    # Find defined identifiers in source code (functions, classes, variables)
+    defined_in_code = set(re.findall(r"\b(?:def|function|class|const|let|var|fn)\s+([a-zA-Z_]\w*)", code_clean))
+    if defined_in_code:
+        return any(name in tests_clean for name in defined_in_code)
+
+    # If code has no function/class definitions, check for non-trivial shared custom tokens
+    code_custom_words = {w for w in code_tokens if w not in builtin_keywords and len(w) > 2}
+    test_custom_words = {w for w in set(re.findall(r"\b[a-zA-Z_]\w*\b", tests_clean)) if w not in builtin_keywords and len(w) > 2}
+
+    if not code_custom_words or not test_custom_words:
+        return False
+
+    return bool(code_custom_words & test_custom_words)
 
 
 def diagnose_custom_code(

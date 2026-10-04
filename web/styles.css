@@ -703,6 +703,31 @@ button, input, select, textarea {
   background: rgba(46, 196, 182, 0.1);
   padding: 0.15rem 0.45rem;
   border-radius: 4px;
+  transition: var(--trans-fast);
+}
+
+.status-indicator.inactive {
+  color: #64748b;
+  background: rgba(100, 116, 139, 0.12);
+}
+
+.btn-clear-tests {
+  background: transparent;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  color: #94a3b8;
+  font-size: 0.65rem;
+  font-family: var(--font-mono);
+  padding: 0.12rem 0.45rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: var(--trans-fast);
+  margin-left: 0.5rem;
+}
+
+.btn-clear-tests:hover {
+  border-color: #f87171;
+  color: #f87171;
+  background: rgba(248, 113, 113, 0.08);
 }
 
 .code-editor-wrapper {

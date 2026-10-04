@@ -228,7 +228,10 @@
                   </span>
                   <span class="pane-title">&gt;_ TESTS (optional)</span>
                 </div>
-                <span class="status-indicator">Contract Active</span>
+                <div style="display: flex; align-items: center;">
+                  <span class="status-indicator" id="testsStatusIndicator">Contract Active</span>
+                  <button class="btn-clear-tests" id="clearTestsBtn" title="Clear tests" onclick="clearTestsEditor()">Clear</button>
+                </div>
               </div>
 
               <div class="code-editor-wrapper tests-editor-wrap">
@@ -250,7 +253,7 @@
                 </label>
 
                 <div class="footer-cta-wrap">
-                  <span class="footer-badge">Test contract attached</span>
+                  <span class="footer-badge" id="testsFooterBadge">Test contract attached</span>
                   <div class="cta-button-group"><button class="btn btn-duck-cta" id="runDuckBtn" onclick="triggerDuckDebug()"><span class="btn-icon">🦆</span><span class="btn-text">Duck Debugger</span></button><button class="btn btn-amber-cta" id="runRepairBtn" onclick="triggerRunRepair()">
                     <span class="btn-spinner" id="btnSpinner" style="display:none;"></span>
                     <span class="btn-text" id="btnText">▶ Run repair</span>

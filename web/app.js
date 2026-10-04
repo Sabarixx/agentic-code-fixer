@@ -8,6 +8,9 @@ let isRunning = false;
 let currentStep = 0;
 let lastGeneratedPatch = "";
 let customPatchedCode = "";
+let activeFixtureSource = "";
+let activeFixtureTests = "";
+let activeFixtureName = "";
 
 document.addEventListener('DOMContentLoaded', () => {
   initEditors();
@@ -38,6 +41,57 @@ function detectClientLanguage(code) {
 }
 
 /* ==================== EDITOR & LINE NUMBER MANAGEMENT ==================== */
+function updateTestContractUI() {
+  const testsEditor = document.getElementById('testsEditor');
+  const indicator = document.getElementById('testsStatusIndicator');
+  const badge = document.getElementById('testsFooterBadge');
+  if (!testsEditor) return;
+
+  const hasTests = testsEditor.value.trim().length > 0;
+  if (indicator) {
+    indicator.innerText = hasTests ? 'Contract Active' : 'Optional / Auto-Gen';
+    indicator.className = hasTests ? 'status-indicator' : 'status-indicator inactive';
+  }
+  if (badge) {
+    badge.innerText = hasTests ? 'Test contract attached' : 'Auto-synthesize tests';
+  }
+}
+
+function clearTestsEditor() {
+  const testsEditor = document.getElementById('testsEditor');
+  if (testsEditor) {
+    testsEditor.value = '';
+    updateEditorLines('testsEditor', 'testsLineNumbers');
+    updateTestContractUI();
+    showToast('Tests cleared — agent will synthesize tailored tests');
+  }
+}
+
+function handleSourceChange(sourceVal) {
+  const fileName = document.getElementById('ideFileName');
+  const testsEditor = document.getElementById('testsEditor');
+  const extMap = { python: 'py', typescript: 'ts', javascript: 'js', rust: 'rs' };
+  const ext = extMap[currentLang] || 'txt';
+
+  const isMatchingFixture = activeFixtureSource && sourceVal.trim() === activeFixtureSource.trim();
+
+  if (isMatchingFixture) {
+    if (fileName && activeFixtureName) fileName.innerText = activeFixtureName;
+  } else {
+    // Custom user code
+    if (fileName) fileName.innerText = `custom_code.${ext}`;
+
+    // If the tests editor still holds the stale fixture tests, auto-clear it
+    // so stale fixture tests (e.g. binary_search assertions) do not pollute the user's custom code!
+    if (testsEditor && activeFixtureTests && testsEditor.value.trim() === activeFixtureTests.trim()) {
+      testsEditor.value = '';
+      updateEditorLines('testsEditor', 'testsLineNumbers');
+      updateTestContractUI();
+      showToast('Cleared fixture tests for custom code');
+    }
+  }
+}
+
 function initEditors() {
   const sourceEditor = document.getElementById('sourceEditor');
   const testsEditor = document.getElementById('testsEditor');
@@ -46,18 +100,24 @@ function initEditors() {
   if (sourceEditor) {
     sourceEditor.addEventListener('input', () => {
       updateEditorLines('sourceEditor', 'sourceLineNumbers', 'sourceLineCount');
-      const detected = detectClientLanguage(sourceEditor.value);
+      const val = sourceEditor.value;
+      const detected = detectClientLanguage(val);
       if (detected && detected !== currentLang) {
         currentLang = detected;
         if (langSelect) langSelect.value = detected;
       }
+      handleSourceChange(val);
     });
     updateEditorLines('sourceEditor', 'sourceLineNumbers', 'sourceLineCount');
   }
 
   if (testsEditor) {
-    testsEditor.addEventListener('input', () => updateEditorLines('testsEditor', 'testsLineNumbers'));
+    testsEditor.addEventListener('input', () => {
+      updateEditorLines('testsEditor', 'testsLineNumbers');
+      updateTestContractUI();
+    });
     updateEditorLines('testsEditor', 'testsLineNumbers');
+    updateTestContractUI();
   }
 }
 
@@ -86,6 +146,10 @@ function loadFixture(lang) {
   currentLang = lang;
   const fixture = FIXTURES[lang] || FIXTURES['typescript'];
 
+  activeFixtureSource = fixture.source;
+  activeFixtureTests = fixture.tests;
+  activeFixtureName = fixture.name;
+
   const sourceEditor = document.getElementById('sourceEditor');
   const testsEditor = document.getElementById('testsEditor');
   const fileName = document.getElementById('ideFileName');
@@ -96,6 +160,7 @@ function loadFixture(lang) {
 
   updateEditorLines('sourceEditor', 'sourceLineNumbers', 'sourceLineCount');
   updateEditorLines('testsEditor', 'testsLineNumbers');
+  updateTestContractUI();
 
   resetStepper();
 }
@@ -176,7 +241,13 @@ async function triggerRunRepair() {
   const defaultFixture = FIXTURES[currentLang] || FIXTURES['typescript'];
 
   const currentSource = sourceEditor ? sourceEditor.value : defaultFixture.source;
-  const currentTests = testsEditor ? testsEditor.value : defaultFixture.tests;
+  let currentTests = testsEditor ? testsEditor.value : defaultFixture.tests;
+
+  // Safeguard: If currentTests is identical to the current fixture's tests,
+  // but the source code has been replaced with custom code, do not send the fixture's tests!
+  if (defaultFixture && currentTests.trim() === defaultFixture.tests.trim() && currentSource.trim() !== defaultFixture.source.trim()) {
+    currentTests = "";
+  }
 
   const idleState = document.getElementById('agentIdleState');
   const liveTrace = document.getElementById('agentLiveTrace');
@@ -691,6 +762,12 @@ async function sendMessageToDuck() {
   let criticMonologue = null;
 
   try {
+    const defaultFixture = FIXTURES[currentLang] || FIXTURES['typescript'];
+    let testsToSend = testsEditor ? testsEditor.value : "";
+    if (defaultFixture && testsToSend.trim() === defaultFixture.tests.trim() && sourceEditor && sourceEditor.value.trim() !== defaultFixture.source.trim()) {
+      testsToSend = "";
+    }
+
     const streamUrl = `${getApiBaseUrl()}/duck_chat/stream`;
     const response = await fetch(streamUrl, {
       method: 'POST',
@@ -701,7 +778,7 @@ async function sendMessageToDuck() {
       body: JSON.stringify({
         session_id: duckSessionId,
         code: sourceEditor ? sourceEditor.value : "",
-        tests: testsEditor ? testsEditor.value : "",
+        tests: testsToSend,
         user_message: userMsg,
         language: currentLang
       })

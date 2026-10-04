@@ -18,7 +18,7 @@ if str(ROOT) not in sys.path:
 
 from ui.pipeline_bridge import run_custom_fix
 from agent.prompts.duck_debugger_prompt import DUCK_SYSTEM_PROMPT, format_duck_prompt, SocraticResponse
-from agent.nodes.custom_debugger import get_llm
+from agent.nodes.custom_debugger import get_llm, are_tests_compatible
 from tools.sandbox_runner import detect_language
 
 app = FastAPI(title="Agentic Code Fixer API")
@@ -60,12 +60,15 @@ async def repair_code(request: RepairRequest):
         target_lang = detect_language(request.code, hint=input_hint)
 
         # run_custom_fix is a generator that yields the stages of the debugging pipeline
+        raw_tests = request.user_tests or request.tests or ""
+        compatible_tests = raw_tests if are_tests_compatible(request.code, raw_tests) else ""
+
         results = list(run_custom_fix(
             code=request.code,
             language=target_lang,
             expected_behavior=request.expected_behavior or "",
             error_message=request.error_message or "",
-            user_tests=request.user_tests or request.tests or ""
+            user_tests=compatible_tests,
         ))
 
         return results
@@ -83,6 +86,9 @@ async def repair_code_stream(request: RepairRequest):
         input_hint = request.language or request.lang or ""
         target_lang = detect_language(request.code, hint=input_hint)
 
+        raw_tests = request.user_tests or request.tests or ""
+        compatible_tests = raw_tests if are_tests_compatible(request.code, raw_tests) else ""
+
         async def event_generator():
             queue: asyncio.Queue = asyncio.Queue()
             loop = asyncio.get_running_loop()
@@ -94,7 +100,7 @@ async def repair_code_stream(request: RepairRequest):
                         language=target_lang,
                         expected_behavior=request.expected_behavior or "",
                         error_message=request.error_message or "",
-                        user_tests=request.user_tests or request.tests or "",
+                        user_tests=compatible_tests,
                     ):
                         loop.call_soon_threadsafe(queue.put_nowait, ("event", step))
                     loop.call_soon_threadsafe(queue.put_nowait, ("done", None))
@@ -157,9 +163,10 @@ async def duck_chat(request: DuckChatRequest):
             session["level"] = min(3, session["level"] + 1)
 
         # 3. Prompt Formatting
+        compatible_tests = request.tests if are_tests_compatible(request.code, request.tests) else ""
         user_prompt = format_duck_prompt(
             code=request.code,
-            tests=request.tests,
+            tests=compatible_tests,
             user_message=request.user_message,
             history=session["history"],
             level=session["level"],
@@ -218,9 +225,10 @@ async def duck_chat_stream(request: DuckChatRequest):
         if is_frustrated or (turn_count > 0 and turn_count % 2 == 0):
             session["level"] = min(3, session["level"] + 1)
 
+        compatible_tests = request.tests if are_tests_compatible(request.code, request.tests) else ""
         user_prompt = format_duck_prompt(
             code=request.code,
-            tests=request.tests,
+            tests=compatible_tests,
             user_message=request.user_message,
             history=session["history"],
             level=session["level"],

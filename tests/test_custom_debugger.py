@@ -149,3 +149,15 @@ def test_are_tests_compatible_detection():
     assert are_tests_compatible(code, matching_tests) is True
     assert are_tests_compatible(code, "") is False
 
+    # Top-level custom code without function definitions vs binary_search fixture tests
+    custom_print_code = "prnt ((sabarish))"
+    binary_search_tests = """def test_binary_search():
+    assert binary_search([1, 3, 5, 7, 9], 9) == 4
+    assert binary_search([1, 3, 5, 7, 9], 1) == 0
+    assert binary_search([1, 3, 5, 7, 9], 6) == -1"""
+    assert are_tests_compatible(custom_print_code, binary_search_tests) is False
+
+    # Real binary search code matches binary search tests
+    bs_code = "def binary_search(arr, target):\n    pass"
+    assert are_tests_compatible(bs_code, binary_search_tests) is True
+
